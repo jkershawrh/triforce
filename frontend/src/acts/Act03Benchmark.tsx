@@ -12,7 +12,9 @@ const TASKS = [
   { id: 'energy_scada', label: '⚡ SCADA Alert', text: 'Compressor Station B: vibration X-axis 6.8mm/s (baseline 4.2, +62%), Y-axis 5.9mm/s (baseline 3.8, +55%), bearing temperature 192°F (baseline 185°F), pressure 1200psi (normal). Trend increasing 40 min. Is this an anomaly? Recommended action?' },
 ]
 
-const MODELS = ['granite-2b-cpu', 'qwen25-3b-cpu', 'granite-3-2-8b-instruct-cpu', 'bitnet-2b4t']
+const CPU_MODELS = ['granite-2b-cpu', 'qwen25-3b-cpu', 'granite-3-2-8b-instruct-cpu']
+const GPU_MODELS = ['granite-3-2-8b-instruct', 'qwen3-14b']
+const MODELS = [...CPU_MODELS, ...GPU_MODELS]
 
 interface BenchmarkResult {
   model: string

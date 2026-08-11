@@ -66,6 +66,9 @@ services:
     environment:
       LITELLM_API_BASE: ${LITELLM_API_BASE}
       LITELLM_API_KEY: ${LITELLM_API_KEY}
+      GPU_API_BASE: "${GPU_API_BASE:-}"
+      GPU_API_KEY: "${GPU_API_KEY:-}"
+      HETEROGENEOUS_ROUTING: "${HETEROGENEOUS_ROUTING:-false}"
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       POSTGRES_DB: triforce
