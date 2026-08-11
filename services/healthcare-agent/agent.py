@@ -292,6 +292,15 @@ async def _run_pipeline_with_models(text: str, patient_id: str = None,
     inference_log = result.get("inference_log", [])
     total_ms = sum(e.get("latency_ms", 0) for e in inference_log)
 
+    AVG_TOKENS = {"classify": 90, "extract_entities": 200, "summarize": 300}
+    gpu_tokens = sum(
+        AVG_TOKENS.get(e.get("node", ""), 100)
+        for e in inference_log
+        if e.get("accelerator") == "gpu"
+    )
+    cost_per_req = gpu_tokens * 0.0003 / 1000
+    cost_monthly = round(cost_per_req * 10000 * 30, 2)
+
     entities = []
     for e in result.get("entities", []):
         entity_type = e.get("type", "condition")
@@ -311,6 +320,7 @@ async def _run_pipeline_with_models(text: str, patient_id: str = None,
         summary=result.get("summary", "Summary unavailable."),
         inference_log=[models.PipelineStepLog(**e) for e in inference_log],
         total_ms=total_ms,
+        cost_monthly=cost_monthly,
     )
 
 

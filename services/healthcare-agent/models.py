@@ -129,6 +129,7 @@ class PipelineResponse(BaseModel):
     summary: str
     inference_log: list[PipelineStepLog]
     total_ms: int = Field(ge=0)
+    cost_monthly: float = 0.0
 
 
 class PipelineCompareResponse(BaseModel):

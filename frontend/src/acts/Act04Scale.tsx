@@ -23,6 +23,7 @@ interface TierResult {
   avgLatencyMs: number
   totalMs: number
   throughputPerMin: number
+  totalCostMonthly: number
 }
 
 export function Act04Scale({ onComplete }: Props) {
@@ -55,19 +56,20 @@ export function Act04Scale({ onComplete }: Props) {
         .then(data => {
           setCompleted(prev => prev + 1)
           setLatencies(prev => [...prev, data.total_ms])
-          return data.total_ms
+          return { latency: data.total_ms, cost: data.cost_monthly || 0 }
         })
         .catch(() => {
           setCompleted(prev => prev + 1)
-          return 0
+          return { latency: 0, cost: 0 }
         })
     })
 
     const results = await Promise.all(promises)
     const totalWallMs = performance.now() - startAll
-    const valid = results.filter(r => r > 0)
-    const avg = valid.length > 0 ? Math.round(valid.reduce((a, b) => a + b, 0) / valid.length) : 0
+    const valid = results.filter(r => r.latency > 0)
+    const avg = valid.length > 0 ? Math.round(valid.reduce((a, b) => a + b.latency, 0) / valid.length) : 0
     const throughput = totalWallMs > 0 ? Math.round((valid.length / totalWallMs) * 60000) : 0
+    const totalCost = valid.reduce((a, b) => a + b.cost, 0)
 
     const tierResult: TierResult = {
       count,
@@ -75,6 +77,7 @@ export function Act04Scale({ onComplete }: Props) {
       avgLatencyMs: avg,
       totalMs: Math.round(totalWallMs),
       throughputPerMin: throughput,
+      totalCostMonthly: Math.round(totalCost / valid.length),
     }
     setTierResults(prev => [...prev, tierResult])
     setRunning(false)
@@ -141,8 +144,8 @@ export function Act04Scale({ onComplete }: Props) {
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: 11, color: 'var(--text-dim)', textTransform: 'uppercase' }}>Cost</div>
-                <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--rh-green)' }}>$0.00</div>
+                <div style={{ fontSize: 11, color: 'var(--text-dim)', textTransform: 'uppercase' }}>$/mo @10K/day</div>
+                <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--rh-green)' }}>—</div>
               </div>
             </div>
 
@@ -172,7 +175,7 @@ export function Act04Scale({ onComplete }: Props) {
                   <th style={{ textAlign: 'right', padding: '8px 12px', color: 'var(--text-dim)', fontWeight: 500 }}>Avg Latency</th>
                   <th style={{ textAlign: 'right', padding: '8px 12px', color: 'var(--text-dim)', fontWeight: 500 }}>Wall Clock</th>
                   <th style={{ textAlign: 'right', padding: '8px 12px', color: 'var(--text-dim)', fontWeight: 500 }}>Throughput</th>
-                  <th style={{ textAlign: 'right', padding: '8px 12px', color: 'var(--rh-green)', fontWeight: 600 }}>Cost</th>
+                  <th style={{ textAlign: 'right', padding: '8px 12px', color: 'var(--rh-green)', fontWeight: 600 }}>$/mo @10K/day</th>
                 </tr>
               </thead>
               <tbody>
@@ -197,8 +200,8 @@ export function Act04Scale({ onComplete }: Props) {
                     <td className="mono" style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--intel-cyan)' }}>
                       {r.throughputPerMin} rec/min
                     </td>
-                    <td className="mono" style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: 'var(--rh-green)' }}>
-                      $0.00
+                    <td className="mono" style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: r.totalCostMonthly === 0 ? 'var(--rh-green)' : 'var(--gpu-amber)' }}>
+                      {r.totalCostMonthly === 0 ? '$0' : `$${r.totalCostMonthly}`}
                     </td>
                   </motion.tr>
                 ))}
@@ -218,7 +221,10 @@ export function Act04Scale({ onComplete }: Props) {
                 Latency increased{' '}
                 {`from ${(tierResults[0].avgLatencyMs / 1000).toFixed(1)}s to ${(tierResults[tierResults.length - 1].avgLatencyMs / 1000).toFixed(1)}s`}
                 {' '}under load.
-                Cost didn't move. <strong style={{ color: 'var(--intel-cyan)' }}>That's the trade.</strong>
+                {tierResults[tierResults.length - 1].totalCostMonthly === 0
+                  ? <> Cost stayed at $0. <strong style={{ color: 'var(--intel-cyan)' }}>That's the CPU trade — latency for cost.</strong></>
+                  : <> GPU routing kept latency lower at <strong style={{ color: 'var(--gpu-amber)' }}>${tierResults[tierResults.length - 1].totalCostMonthly}/mo</strong>. <strong style={{ color: 'var(--intel-cyan)' }}>The router made the call.</strong></>
+                }
               </motion.div>
             )}
           </motion.div>
