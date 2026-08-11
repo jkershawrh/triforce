@@ -72,6 +72,12 @@ class TestPipelineEndpoints:
         assert "summary" in data and len(data["summary"]) > 20
         assert "entities" in data and len(data["entities"]) > 0
 
+        assert "cost_monthly" in data, "cost_monthly missing from pipeline response"
+        assert isinstance(data["cost_monthly"], (int, float)), (
+            f"cost_monthly should be a number, got {type(data['cost_monthly']).__name__}"
+        )
+        assert data["cost_monthly"] >= 0, f"cost_monthly is negative: {data['cost_monthly']}"
+
         for entry in data.get("inference_log", []):
             assert entry["latency_ms"] >= 0, f"Node {entry['node']} has negative latency"
             assert entry["model"], f"Node {entry['node']} has empty model"
@@ -128,6 +134,15 @@ class TestBenchmarkModule:
             assert r["latency_ms"] > 0, f"Model {r['model']} latency is 0"
             assert r["output"], f"Model {r['model']} empty output"
             assert _not_nan(r["latency_ms"]), f"Model {r['model']} latency is NaN"
+            assert "cost_monthly" in r, f"Model {r['model']} missing cost_monthly"
+            assert isinstance(r["cost_monthly"], (int, float)), (
+                f"Model {r['model']} cost_monthly should be a number"
+            )
+            assert r["cost_monthly"] >= 0, f"Model {r['model']} cost_monthly is negative"
+            assert "hardware" in r, f"Model {r['model']} missing hardware field"
+            assert r["hardware"] in ("cpu", "gpu"), (
+                f"Model {r['model']} unexpected hardware: {r['hardware']}"
+            )
 
 
 @pytest.mark.skipif(SKIP, reason="Healthcare agent not reachable")

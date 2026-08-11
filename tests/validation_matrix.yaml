@@ -253,6 +253,10 @@ stages:
         description: "Secure Act 05 tradeoff numbers are marked as projected until TDX is live"
         points: 10
         required: false
+      cost_display_accuracy:
+        description: "cost_monthly present in pipeline and benchmark responses; value is a number >= 0"
+        points: 10
+        required: true
       no_hardcoded_latency:
         description: "No hardcoded ms/s values displayed as if they were live measurements"
         points: 15
@@ -345,7 +349,7 @@ stages:
         points: 15
         required: true
       benchmark_cpu_vs_gpu:
-        description: "Same model on CPU vs GPU shows measurable latency difference"
+        description: "Same model on CPU vs GPU shows measurable latency difference; cost_monthly == 0 for CPU, cost_monthly > 0 for GPU"
         points: 15
         required: true
       benchmark_results_logged:

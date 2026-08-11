@@ -150,6 +150,147 @@ paths:
               schema:
                 $ref: "#/components/schemas/SpeculativeRunResponse"
 
+  /api/v1/stats:
+    get:
+      operationId: getInferenceStats
+      summary: Inference statistics from PostgreSQL
+      tags: [infrastructure]
+      responses:
+        "200":
+          description: Inference statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InferenceStatsResponse"
+
+  /api/v1/pipeline:
+    post:
+      operationId: runPipeline
+      summary: Run full 4-node clinical NLP pipeline
+      tags: [clinical-nlp]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PipelineRequest"
+      responses:
+        "200":
+          description: Pipeline result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PipelineResponse"
+
+  /api/v1/pipeline/compare:
+    post:
+      operationId: comparePipeline
+      summary: Compare FP32 vs INT8 pipeline execution
+      tags: [clinical-nlp]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PipelineRequest"
+      responses:
+        "200":
+          description: Pipeline comparison result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PipelineCompareResponse"
+
+  /api/v1/benchmark/models:
+    get:
+      operationId: listBenchmarkModels
+      summary: List available models for benchmarking
+      tags: [optimization]
+      responses:
+        "200":
+          description: Available benchmark models
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BenchmarkModelsResponse"
+
+  /api/v1/benchmark/run:
+    post:
+      operationId: runBenchmark
+      summary: Run model comparison benchmark
+      tags: [optimization]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BenchmarkRunRequest"
+      responses:
+        "200":
+          description: Benchmark comparison result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BenchmarkRunResponse"
+
+  /api/v1/adaptive/stats:
+    get:
+      operationId: getAdaptiveStats
+      summary: Get adaptive classification cache statistics
+      tags: [optimization]
+      responses:
+        "200":
+          description: Cache hit/miss statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdaptiveStatsResponse"
+
+  /api/v1/adaptive/reset:
+    post:
+      operationId: resetAdaptiveCache
+      summary: Reset adaptive classification cache
+      tags: [optimization]
+      responses:
+        "200":
+          description: Cache reset confirmation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdaptiveResetResponse"
+
+  /api/v1/modules:
+    get:
+      operationId: listModules
+      summary: List active optimization modules
+      tags: [infrastructure]
+      responses:
+        "200":
+          description: Active modules list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModulesResponse"
+
+  /api/v1/fusion:
+    post:
+      operationId: runFusion
+      summary: Multi-model panel and judge synthesis
+      tags: [optimization]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FusionRequest"
+      responses:
+        "200":
+          description: Fusion synthesis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FusionResponse"
+
 components:
   schemas:
     HealthResponse:
@@ -554,3 +695,278 @@ components:
             kind:
               type: string
               const: task
+
+    # Inference statistics
+    InferenceStatsResponse:
+      type: object
+      properties:
+        total_requests:
+          type: integer
+          minimum: 0
+        avg_latency_ms:
+          type: number
+          minimum: 0
+        models_used:
+          type: object
+          additionalProperties:
+            type: integer
+        window_minutes:
+          type: integer
+
+    # Pipeline schemas
+    PipelineStepLog:
+      type: object
+      required: [node, latency_ms]
+      properties:
+        node:
+          type: string
+        model:
+          type: string
+        tool:
+          type: string
+        latency_ms:
+          type: integer
+          minimum: 0
+        accelerator:
+          type: string
+          default: cpu
+        kv_cache_hit:
+          type: boolean
+
+    PipelineRequest:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 50000
+        patient_id:
+          type: string
+        classify_model:
+          type: string
+        ner_model:
+          type: string
+        summarize_model:
+          type: string
+        skip_cache:
+          type: boolean
+          default: false
+
+    PipelineResponse:
+      type: object
+      required: [classification, entities, drug_interactions, summary, inference_log, total_ms]
+      properties:
+        classification:
+          type: string
+        entities:
+          type: array
+          items:
+            $ref: "#/components/schemas/MedicalEntity"
+        drug_interactions:
+          type: array
+          items:
+            type: object
+            properties:
+              drug_pair:
+                type: array
+                items:
+                  type: string
+              severity:
+                type: string
+              description:
+                type: string
+        summary:
+          type: string
+        inference_log:
+          type: array
+          items:
+            $ref: "#/components/schemas/PipelineStepLog"
+        total_ms:
+          type: integer
+          minimum: 0
+        cost_monthly:
+          type: number
+          default: 0.0
+          description: Projected monthly cost at 10K requests/day
+
+    PipelineCompareResponse:
+      type: object
+      required: [baseline, optimized, delta_ms, speedup]
+      properties:
+        baseline:
+          $ref: "#/components/schemas/PipelineResponse"
+        optimized:
+          $ref: "#/components/schemas/PipelineResponse"
+        delta_ms:
+          type: integer
+        speedup:
+          type: string
+
+    # Benchmark schemas
+    BenchmarkModel:
+      type: object
+      required: [model, hardware, cost]
+      properties:
+        model:
+          type: string
+        hardware:
+          type: string
+          enum: [cpu, gpu]
+        cost:
+          type: string
+
+    BenchmarkModelsResponse:
+      type: object
+      required: [cpu_models, gpu_models, total]
+      properties:
+        cpu_models:
+          type: array
+          items:
+            $ref: "#/components/schemas/BenchmarkModel"
+        gpu_models:
+          type: array
+          items:
+            $ref: "#/components/schemas/BenchmarkModel"
+        total:
+          type: integer
+
+    BenchmarkRunRequest:
+      type: object
+      required: [task, text, models]
+      properties:
+        task:
+          type: string
+        text:
+          type: string
+        models:
+          type: array
+          items:
+            type: string
+
+    BenchmarkResult:
+      type: object
+      required: [model, hardware, task, latency_ms]
+      properties:
+        model:
+          type: string
+        hardware:
+          type: string
+          enum: [cpu, gpu]
+        task:
+          type: string
+        latency_ms:
+          type: integer
+          minimum: 0
+        output:
+          type: string
+        prompt_tokens:
+          type: integer
+          minimum: 0
+        output_tokens:
+          type: integer
+          minimum: 0
+        cost_monthly:
+          type: number
+          description: Projected monthly cost at 10K requests/day
+        error:
+          type: string
+
+    BenchmarkRunResponse:
+      type: object
+      required: [task, models_compared, results, fastest]
+      properties:
+        task:
+          type: string
+        models_compared:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/BenchmarkResult"
+        fastest:
+          $ref: "#/components/schemas/BenchmarkResult"
+
+    # Adaptive cache schemas
+    AdaptiveStatsResponse:
+      type: object
+      properties:
+        cache_size:
+          type: integer
+          minimum: 0
+        total_lookups:
+          type: integer
+          minimum: 0
+        cache_hits:
+          type: integer
+          minimum: 0
+        cache_misses:
+          type: integer
+          minimum: 0
+        hit_rate:
+          type: number
+          minimum: 0
+          maximum: 1
+        llm_reduction_pct:
+          type: number
+          minimum: 0
+          maximum: 100
+        enabled:
+          type: boolean
+
+    AdaptiveResetResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+        cache_size:
+          type: integer
+          minimum: 0
+
+    # Modules schema
+    ModulesResponse:
+      type: object
+      required: [enabled, count]
+      properties:
+        enabled:
+          type: array
+          items:
+            type: string
+        count:
+          type: integer
+          minimum: 0
+
+    # Fusion schemas
+    FusionRequest:
+      type: object
+      required: [task, prompt]
+      properties:
+        task:
+          type: string
+        prompt:
+          type: string
+
+    FusionResponse:
+      type: object
+      required: [status, total_ms, panel_results, judge_synthesis]
+      properties:
+        status:
+          type: string
+        total_ms:
+          type: integer
+          minimum: 0
+        panel_results:
+          type: array
+          items:
+            type: object
+            properties:
+              model:
+                type: string
+              output:
+                type: string
+              latency_ms:
+                type: integer
+                minimum: 0
+        judge_synthesis:
+          type: string

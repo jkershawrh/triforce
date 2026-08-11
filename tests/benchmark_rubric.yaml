@@ -330,8 +330,12 @@ benchmark_rubric:
             - granite-3-2-8b-instruct-cpu
             - granite-4.1-8b
         result_shape:
-          required_fields: ["model", "hardware", "task", "latency_ms", "output_tokens"]
+          required_fields: ["model", "hardware", "task", "latency_ms", "output_tokens", "cost_monthly", "prompt_tokens"]
           sort_by: latency_ms
+          cost_validation:
+            cpu_cost_monthly: 0
+            gpu_cost_monthly_gt: 0
+            rule: "CPU models must have cost_monthly == 0; GPU models must have cost_monthly > 0"
 
     fusion:
       description: "Multi-model panel plus judge synthesis"
