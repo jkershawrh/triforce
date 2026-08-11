@@ -99,14 +99,26 @@ async def run_single(model: str, task: str, text: str,
     choice = data["choices"][0]["message"]
     usage = data.get("usage", {})
 
+    prompt_tokens = usage.get("prompt_tokens", 0)
+    output_tokens = usage.get("completion_tokens", 0)
+    total_tokens = prompt_tokens + output_tokens
+
+    if is_gpu:
+        cost_per_req = total_tokens * 0.0003 / 1000
+    else:
+        cost_per_req = 0.0
+
+    monthly_cost = round(cost_per_req * 10000 * 30, 2)
+
     return {
         "model": model,
         "hardware": "gpu" if is_gpu else "cpu",
         "task": task,
         "latency_ms": latency_ms,
         "output": (choice.get("content") or "")[:500],
-        "prompt_tokens": usage.get("prompt_tokens", 0),
-        "output_tokens": usage.get("completion_tokens", 0),
+        "prompt_tokens": prompt_tokens,
+        "output_tokens": output_tokens,
+        "cost_monthly": monthly_cost,
     }
 
 

@@ -13,7 +13,7 @@ const TASKS = [
 ]
 
 const CPU_MODELS = ['granite-2b-cpu', 'qwen25-3b-cpu', 'granite-3-2-8b-instruct-cpu']
-const GPU_MODELS = ['granite-3-2-8b-instruct', 'qwen3-14b']
+const GPU_MODELS = ['granite-3-2-8b-instruct']
 const MODELS = [...CPU_MODELS, ...GPU_MODELS]
 
 interface BenchmarkResult {
@@ -23,6 +23,7 @@ interface BenchmarkResult {
   latency_ms: number
   output?: string
   output_tokens?: number
+  cost_monthly?: number
   error?: string
 }
 
@@ -111,6 +112,7 @@ export function Act03Benchmark({ onComplete }: Props) {
                 <th style={{ textAlign: 'center', padding: '8px 10px', color: 'var(--text-dim)' }}>Hardware</th>
                 <th style={{ textAlign: 'right', padding: '8px 10px', color: 'var(--text-dim)' }}>Latency</th>
                 <th style={{ textAlign: 'right', padding: '8px 10px', color: 'var(--text-dim)' }}>Tokens</th>
+                <th style={{ textAlign: 'right', padding: '8px 10px', color: 'var(--text-dim)' }}>$/mo @10K/day</th>
                 <th style={{ textAlign: 'left', padding: '8px 10px', color: 'var(--text-dim)' }}>Output</th>
               </tr>
             </thead>
@@ -135,6 +137,9 @@ export function Act03Benchmark({ onComplete }: Props) {
                   </td>
                   <td className="mono" style={{ padding: '10px', textAlign: 'right', color: 'var(--text-dim)' }}>
                     {r.output_tokens || '—'}
+                  </td>
+                  <td className="mono" style={{ padding: '10px', textAlign: 'right', fontWeight: 700, color: r.cost_monthly === 0 ? 'var(--rh-green)' : 'var(--gpu-amber)' }}>
+                    {r.cost_monthly !== undefined ? (r.cost_monthly === 0 ? '$0' : `$${r.cost_monthly.toFixed(0)}`) : '—'}
                   </td>
                   <td style={{ padding: '10px', fontSize: 12, color: 'var(--text-dim)', maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {(r.output || '').slice(0, 60)}
