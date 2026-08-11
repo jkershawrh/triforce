@@ -157,17 +157,19 @@ SLIDES = [
             1: "Red Hat × Intel  |  Tech Accelerate 2026",
             0: "Model Fleet — Intel® Xeon® 6 + Gaudi®",
             2: "Right model per task • right hardware per model",
-            4: "CPU Models ($0/token):\n"
-               "  granite-4-0-h-tiny (~1B) — ultra-fast classification\n"
+            4: "CPU Models — Intel® Xeon® 6 ($0/token):\n"
+               "  granite-4-0-h-tiny-cpu (~1B) — ultra-fast classification, draft model\n"
                "  granite-2b-cpu (2B) — NER, fraud scoring\n"
                "  qwen25-3b-cpu (3B) — classification, summarization\n"
                "  phi3-mini-cpu (3.8B) — complex reasoning\n"
-               "  granite-3-2-8b-instruct (8B) — reasoning, fusion judge\n\n"
-               "GPU Models ($/token):\n"
+               "  granite-3-2-8b-instruct-cpu (8B) — reasoning, fusion judge\n\n"
+               "GPU Models — Intel® Gaudi® ($/token):\n"
+               "  granite-3-2-8b-instruct (8B) — reasoning, NER\n"
                "  qwen3-14b (14B) — multilingual reasoning\n"
+               "  gpt-oss-20b (20B) — summarization\n"
                "  gpt-oss-120b (120B) — frontier reasoning",
         },
-        "notes": "5 CPU models at $0/token. GPU reserved for tasks that genuinely need it.",
+        "notes": "5 CPU models at $0/token. 4 GPU models on Gaudi at $/token. Semantic router decides.",
     },
     # --- 9: Section - Lab ---
     {
@@ -206,28 +208,32 @@ SLIDES = [
             1: "Red Hat × Intel  |  Tech Accelerate 2026",
             0: "12 Optimization Techniques",
             2: "Per-request + system-level — they compound",
-            4: "Per-Request:\n"
-               "  • Adaptive classification cache (0ms on hit)\n"
-               "  • Conditional pipeline (skip unnecessary nodes)\n"
-               "  • Right-sized model per task (2B vs 8B)\n"
-               "  • Prompt tuning (compact JSON output)\n\n"
-               "System-Level:\n"
-               "  • INT8 quantization via Intel® AMX\n"
+            4: "Per-Record Efficiency (reduce work per request):\n"
+               "  • Semantic routing — right model per complexity (<1ms)\n"
+               "  • Conditional pipeline — skip nodes when not needed\n"
+               "  • MCP tools — database lookup vs LLM call (250x faster)\n"
+               "  • Adaptive classification cache (0ms on hit, learns over time)\n\n"
+               "Model Optimization (same hardware, better inference):\n"
+               "  • INT8/INT4 quantization via Intel® AMX\n"
                "  • Speculative decoding (draft + target)\n"
+               "  • Right-sized model selection (2B vs 3B vs 8B)\n\n"
+               "Fleet-Scale Throughput (scale total output):\n"
+               "  • AMQ Streams batch processing\n"
+               "  • Agent + model replica scaling\n"
                "  • Heterogeneous routing (CPU → GPU)\n"
                "  • Multi-model fusion (panel + judge)\n"
-               "  • vLLM continuous batching + paged attention",
+               "  • llm-d disaggregated inference (roadmap)",
         },
-        "notes": "These compound. Cache + right model + conditional pipeline = 60-80% cost reduction.",
+        "notes": "12 optimizations in 3 categories. They compound — cache + routing + right model = 60-80% cost reduction.",
     },
     # --- 12: Demo - Pipeline ---
     {
         "layout": LY_STATEMENT,
         "placeholders": {
             1: "LIVE DEMO",
-            0: "Healthcare NLP Pipeline\n4 models • 1 clinical note • ~5s • $0.00",
+            0: "Healthcare NLP Pipeline\n4 models • 1 clinical note\nCPU at $0 • GPU where it matters",
         },
-        "notes": "SCREENSHOT: Run the pipeline from the Triforce frontend. Show results with latency and $0 cost.",
+        "notes": "SCREENSHOT: Run the pipeline from the Triforce frontend. Simple tasks on CPU, complex on GPU via semantic router.",
     },
     # --- 13: Demo - Benchmark ---
     {
@@ -263,14 +269,16 @@ SLIDES = [
             1: "Red Hat × Intel  |  Tech Accelerate 2026",
             0: "Measured Results",
             2: "All numbers from live RHDP MAAS on Intel Xeon 6",
-            4: "Pipeline latency:    ~10s (8B model) → ~3-5s (right-sized)  = 2-3x faster\n"
-               "Classification:      ~800ms (LLM) → 0ms (cache hit)        = instant\n"
-               "Cost per inference:  $/token (GPU) → $0/token (CPU)        = 100% savings\n"
-               "Concurrent users:    1 (thread-locked) → 10+ (OVMS/vLLM)   = 10x scale\n\n"
-               "CPU handles 80% of routine inference.\n"
-               "GPU is reserved for the 20% that genuinely needs it.",
+            4: "Pipeline latency:    ~10s (8B model) → ~3-5s (right-sized)    = 2-3x faster\n"
+               "Classification:      ~800ms (LLM) → 0ms (cache hit)          = instant\n"
+               "GPU vs CPU:          373ms (Gaudi) vs 527ms (Xeon) classify   = 1.4x\n"
+               "Summarization:       2.7s (Gaudi) vs 4.4s (Xeon)             = 1.6x faster\n"
+               "Concurrent users:    1 (thread-locked) → 10+ (OVMS/vLLM)     = 10x scale\n\n"
+               "Monthly cost @10K requests/day:\n"
+               "  CPU: $0/mo  •  GPU: $8/mo (classification) to $27/mo (summarization)\n\n"
+               "80% of tasks route to CPU ($0). 20% route to GPU where quality demands it.",
         },
-        "notes": "Not synthetic benchmarks. Live measurements on RHDP MAAS Intel Xeon 6.",
+        "notes": "Live measurements on RHDP MAAS. GPU numbers from Gaudi via same LiteLLM gateway.",
     },
     # --- 17: Decision Framework ---
     {
