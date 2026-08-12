@@ -4,9 +4,9 @@ import { motion } from 'motion/react'
 interface Props { onComplete?: () => void }
 
 const TIERS = [
+  { count: 3, label: '3 records' },
+  { count: 5, label: '5 records' },
   { count: 10, label: '10 records' },
-  { count: 30, label: '30 records' },
-  { count: 50, label: '50 records' },
 ]
 
 const SAMPLE_TEXTS = [
