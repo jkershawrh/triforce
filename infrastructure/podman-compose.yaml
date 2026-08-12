@@ -146,8 +146,8 @@ services:
 
   mcp-gateway:
     build:
-      context: ../services/mcp-gateway
-      dockerfile: Containerfile
+      context: ..
+      dockerfile: services/mcp-gateway/Containerfile
     ports:
       - "127.0.0.1:8091:8091"
     volumes:
