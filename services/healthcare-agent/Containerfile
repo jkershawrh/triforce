@@ -5,6 +5,8 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY config.py .
+COPY llm_client.py .
 COPY models.py .
 COPY agent.py .
 COPY db.py .

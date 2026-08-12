@@ -202,6 +202,21 @@ async def a2a_endpoint(request: models.JsonRpcRequest):
 
 # --- Clinical NLP Endpoints (graph-powered) ---
 
+def _to_medical_entities(raw_entities: list) -> list:
+    valid_types = [t.value for t in models.EntityType]
+    entities = []
+    for e in raw_entities:
+        entity_type = e.get("type", "condition")
+        if entity_type in valid_types:
+            entities.append(models.MedicalEntity(
+                text=e["text"],
+                type=models.EntityType(entity_type),
+                start=e.get("start", 0),
+                end=e.get("end", len(e["text"])),
+            ))
+    return entities
+
+
 def _model_for_node(result: dict, node: str) -> str:
     """Extract the actual model used for a pipeline node from inference_log."""
     return next(
@@ -237,17 +252,7 @@ async def extract_entities(req: models.ExtractEntitiesRequest):
     result = await run_graph(req.text)
     total_ms = sum(e.get("latency_ms", 0) for e in result.get("inference_log", []) if e.get("node") == "extract_entities")
 
-    entities = []
-    for e in result.get("entities", []):
-        entity_type = e.get("type", "condition")
-        valid_types = [t.value for t in models.EntityType]
-        if entity_type in valid_types:
-            entities.append(models.MedicalEntity(
-                text=e["text"],
-                type=models.EntityType(entity_type),
-                start=e.get("start", 0),
-                end=e.get("end", len(e["text"])),
-            ))
+    entities = _to_medical_entities(result.get("entities", []))
 
     return models.ExtractEntitiesResponse(
         entities=entities,
@@ -301,17 +306,7 @@ async def _run_pipeline_with_models(text: str, patient_id: str = None,
     cost_per_req = gpu_tokens * 0.0003 / 1000
     cost_monthly = round(cost_per_req * 10000 * 30, 2)
 
-    entities = []
-    for e in result.get("entities", []):
-        entity_type = e.get("type", "condition")
-        valid_types = [t.value for t in models.EntityType]
-        if entity_type in valid_types:
-            entities.append(models.MedicalEntity(
-                text=e["text"],
-                type=models.EntityType(entity_type),
-                start=e.get("start", 0),
-                end=e.get("end", len(e["text"])),
-            ))
+    entities = _to_medical_entities(result.get("entities", []))
 
     return models.PipelineResponse(
         classification=result.get("classification", "unknown"),

@@ -10,11 +10,9 @@ Falls back to app-layer mode when the vLLM speculative model is unreachable.
 """
 
 import os
-import time
 from typing import Optional
 
-import httpx
-
+import llm_client
 from benchmark import TASK_PROMPTS
 
 DEFAULT_TARGET_MODEL = "granite-2b-cpu"
@@ -57,48 +55,12 @@ def status() -> dict:
 
 async def _call_model(model: str, text: str, task: str, max_tokens: Optional[int]) -> dict:
     task_config = TASK_PROMPTS.get(task, TASK_PROMPTS["summarization"])
-    api_base = os.environ.get("LITELLM_API_BASE", "")
-    api_key = os.environ.get("LITELLM_API_KEY", "")
-    payload = {
-        "model": model,
-        "messages": [
-            {"role": "user", "content": f"{task_config['system']}\n\n{text}"}
-        ],
-        "max_tokens": max_tokens or task_config["max_tokens"],
-        "temperature": 0.1,
-    }
-
-    start = time.monotonic()
-    try:
-        async with httpx.AsyncClient(timeout=60) as client:
-            resp = await client.post(
-                f"{api_base}/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json",
-                },
-                json=payload,
-            )
-            resp.raise_for_status()
-            data = resp.json()
-    except Exception as e:
-        return {
-            "model": model,
-            "task": task,
-            "latency_ms": int((time.monotonic() - start) * 1000),
-            "error": str(e),
-        }
-
-    choice = data["choices"][0]["message"]
-    usage = data.get("usage", {})
-    return {
-        "model": model,
-        "task": task,
-        "latency_ms": int((time.monotonic() - start) * 1000),
-        "output": choice.get("content") or "",
-        "prompt_tokens": usage.get("prompt_tokens", 0),
-        "output_tokens": usage.get("completion_tokens", 0),
-    }
+    prompt = f"{task_config['system']}\n\n{text}"
+    result = await llm_client.call_llm(model, prompt,
+                                       max_tokens=max_tokens or task_config["max_tokens"])
+    result["task"] = task
+    result["output"] = result.pop("content", "")
+    return result
 
 
 async def run(text: str, task: str = "summarization", max_tokens: Optional[int] = None) -> dict:

@@ -6,8 +6,9 @@ Can also run standalone for pre-computed benchmark reports.
 
 import logging
 import os
-import time
 from typing import Optional
+
+import llm_client
 
 logger = logging.getLogger("triforce.benchmark")
 
@@ -49,53 +50,21 @@ async def run_single(model: str, task: str, text: str,
                      api_base: Optional[str] = None,
                      api_key: Optional[str] = None) -> dict:
     """Run a single model on a single task. Returns latency, output, tokens."""
-    import httpx
-
     task_config = TASK_PROMPTS.get(task, TASK_PROMPTS["classification"])
-    base = api_base or os.environ.get("LITELLM_API_BASE", "")
-    key = api_key or os.environ.get("LITELLM_API_KEY", "")
-
-    gpu_base = os.environ.get("GPU_API_BASE", "")
-    gpu_key = os.environ.get("GPU_API_KEY", "")
+    prompt = f"{task_config['system']}\n\n{text}"
     is_gpu = model in GPU_MODELS
-    if is_gpu and gpu_base:
-        base = gpu_base
-        key = gpu_key or key
 
-    payload = {
-        "model": model,
-        "messages": [
-            {"role": "user", "content": f"{task_config['system']}\n\n{text}"}
-        ],
-        "max_tokens": task_config["max_tokens"],
-        "temperature": 0.1,
-    }
+    result = await llm_client.call_llm(model, prompt,
+                                       max_tokens=task_config["max_tokens"],
+                                       api_base=api_base, api_key=api_key)
 
-    start = time.monotonic()
-    try:
-        async with httpx.AsyncClient(timeout=60) as client:
-            resp = await client.post(
-                f"{base}/v1/chat/completions",
-                headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
-                json=payload,
-            )
-            resp.raise_for_status()
-            data = resp.json()
-    except Exception as e:
-        return {
-            "model": model,
-            "hardware": "gpu" if is_gpu else "cpu",
-            "task": task,
-            "latency_ms": int((time.monotonic() - start) * 1000),
-            "error": str(e),
-        }
+    if "error" in result:
+        result["hardware"] = "gpu" if is_gpu else "cpu"
+        result["task"] = task
+        return result
 
-    latency_ms = int((time.monotonic() - start) * 1000)
-    choice = data["choices"][0]["message"]
-    usage = data.get("usage", {})
-
-    prompt_tokens = usage.get("prompt_tokens", 0)
-    output_tokens = usage.get("completion_tokens", 0)
+    prompt_tokens = result.get("prompt_tokens", 0)
+    output_tokens = result.get("output_tokens", 0)
     total_tokens = prompt_tokens + output_tokens
 
     if is_gpu:
@@ -103,17 +72,15 @@ async def run_single(model: str, task: str, text: str,
     else:
         cost_per_req = 0.0
 
-    monthly_cost = round(cost_per_req * 10000 * 30, 2)
-
     return {
         "model": model,
         "hardware": "gpu" if is_gpu else "cpu",
         "task": task,
-        "latency_ms": latency_ms,
-        "output": (choice.get("content") or "")[:500],
+        "latency_ms": result["latency_ms"],
+        "output": (result.get("content") or "")[:500],
         "prompt_tokens": prompt_tokens,
         "output_tokens": output_tokens,
-        "cost_monthly": monthly_cost,
+        "cost_monthly": round(cost_per_req * 10000 * 30, 2),
     }
 
 

@@ -15,7 +15,7 @@ import re
 import time
 from typing import List, Optional
 
-import httpx
+import llm_client
 
 logger = logging.getLogger("healthcare.fusion")
 
@@ -97,48 +97,10 @@ def _parse_judge_response(text: str) -> dict:
 
 
 async def _call_model(model: str, prompt: str, max_tokens: int = 300) -> dict:
-    api_base = os.environ.get("LITELLM_API_BASE", "")
-    api_key = os.environ.get("LITELLM_API_KEY", "")
-
-    gpu_base = os.environ.get("GPU_API_BASE", "")
-    gpu_key = os.environ.get("GPU_API_KEY", "")
-    if "cpu" not in model and gpu_base:
-        api_base = gpu_base
-        api_key = gpu_key or api_key
-
-    start = time.monotonic()
-    try:
-        async with httpx.AsyncClient(timeout=60) as client:
-            resp = await client.post(
-                f"{api_base}/v1/chat/completions",
-                headers={"Authorization": f"Bearer {api_key}",
-                         "Content-Type": "application/json"},
-                json={
-                    "model": model,
-                    "messages": [{"role": "user", "content": prompt}],
-                    "max_tokens": max_tokens,
-                    "temperature": 0.1,
-                },
-            )
-            resp.raise_for_status()
-            data = resp.json()
-    except Exception as e:
-        return {
-            "model": model,
-            "latency_ms": int((time.monotonic() - start) * 1000),
-            "error": str(e),
-        }
-
-    latency_ms = int((time.monotonic() - start) * 1000)
-    content = data["choices"][0]["message"].get("content", "")
-    usage = data.get("usage", {})
-
-    return {
-        "model": model,
-        "latency_ms": latency_ms,
-        "response": content,
-        "tokens": usage.get("completion_tokens", 0),
-    }
+    result = await llm_client.call_llm(model, prompt, max_tokens=max_tokens)
+    result["response"] = result.pop("content", "")
+    result["tokens"] = result.get("output_tokens", 0)
+    return result
 
 
 async def run_fusion(prompt: str, task: str = "general") -> dict:
