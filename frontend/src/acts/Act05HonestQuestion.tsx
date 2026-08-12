@@ -1,34 +1,131 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'motion/react'
 import { useDemoMetrics } from '../stores/demoStore'
 
 interface Props { onComplete?: () => void }
 
+const SAMPLE_TEXT = 'DISCHARGE SUMMARY: 72-year-old male with Type 2 Diabetes on Metformin 500mg and Lisinopril 10mg. Recent STEMI with PCI to RCA. Aspirin 81mg and Clopidogrel 75mg prescribed.'
+
+interface GpuBenchmark {
+  classification?: { latency_ms: number; cost_monthly: number }
+  ner?: { latency_ms: number; cost_monthly: number }
+  summarization?: { latency_ms: number; cost_monthly: number }
+}
+
 function fmt(ms: number): string {
+  if (ms <= 0) return '—'
   if (ms < 1000) return `${ms}ms`
   return `${(ms / 1000).toFixed(1)}s`
 }
 
 export function Act05HonestQuestion({ onComplete }: Props) {
-  const { pipeline } = useDemoMetrics()
+  const { pipeline, setPipeline } = useDemoMetrics()
+  const [gpu, setGpu] = useState<GpuBenchmark>({})
+  const [loading, setLoading] = useState(false)
 
-  const p = pipeline || { classifyMs: 0, nerMs: 0, interactionsMs: 0, summarizeMs: 0, totalMs: 0, entities: 0, interactions: 0 }
+  useEffect(() => {
+    if (pipeline && gpu.classification) return
+
+    setLoading(true)
+    const fetches: Promise<void>[] = []
+
+    if (!pipeline) {
+      fetches.push(
+        fetch('/healthcare/api/v1/pipeline', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: SAMPLE_TEXT, skip_cache: true }),
+        })
+          .then(r => r.json())
+          .then(data => {
+            const log = data.inference_log || []
+            setPipeline({
+              classifyMs: log.find((e: any) => e.node === 'classify')?.latency_ms || 0,
+              nerMs: log.find((e: any) => e.node === 'extract_entities')?.latency_ms || 0,
+              interactionsMs: log.find((e: any) => e.node === 'check_interactions')?.latency_ms || 0,
+              summarizeMs: log.find((e: any) => e.node === 'summarize')?.latency_ms || 0,
+              totalMs: data.total_ms,
+              entities: data.entities?.length || 0,
+              interactions: data.drug_interactions?.length || 0,
+              costMonthly: data.cost_monthly || 0,
+            })
+          })
+          .catch(() => {})
+      )
+    }
+
+    for (const task of ['classification', 'ner', 'summarization'] as const) {
+      fetches.push(
+        fetch('/healthcare/api/v1/benchmark/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ task, text: SAMPLE_TEXT, models: ['granite-3-2-8b-instruct'] }),
+        })
+          .then(r => r.json())
+          .then(data => {
+            const r = data.results?.[0]
+            if (r && !r.error) {
+              setGpu(prev => ({ ...prev, [task]: { latency_ms: r.latency_ms, cost_monthly: r.cost_monthly || 0 } }))
+            }
+          })
+          .catch(() => {})
+      )
+    }
+
+    Promise.all(fetches).finally(() => setLoading(false))
+  }, [])
+
+  const p = pipeline || { classifyMs: 0, nerMs: 0, interactionsMs: 0, summarizeMs: 0, totalMs: 0, entities: 0, interactions: 0, costMonthly: 0 }
   const hasLive = pipeline !== null
 
   const metrics = [
     { label: 'Clinical Pipeline', value: '4 nodes · 3 models', detail: 'classify → NER → interactions → summarize', color: 'var(--intel-cyan)' },
-    { label: 'Entities Extracted', value: hasLive ? String(p.entities) : '—', detail: hasLive ? 'from live pipeline run' : 'run pipeline in Act 02', color: 'var(--rh-teal)' },
+    { label: 'Entities Extracted', value: hasLive ? String(p.entities) : '—', detail: hasLive ? 'from live pipeline run' : 'loading...', color: 'var(--rh-teal)' },
     { label: 'Drug Interactions', value: hasLive ? `${p.interactions} found` : '—', detail: 'curated FDA database via MCP', color: 'var(--rh-orange)' },
     { label: 'Fraud Scored', value: '2 transactions', detail: '1 blocked (CRITICAL), 1 approved (LOW)', color: 'var(--rh-red)' },
-    { label: 'CPU Cost', value: '$0.00', detail: 'every call on Xeon 6 CPU', color: 'var(--rh-green)' },
+    { label: 'CPU $/mo @10K/day', value: hasLive ? (p.costMonthly === 0 ? '$0' : `$${p.costMonthly}`) : '—', detail: 'projected from live pipeline', color: 'var(--rh-green)' },
   ]
 
   const comparison = [
-    { task: 'Classification', cpu: hasLive ? fmt(p.classifyMs) : '—', gpu: '~500ms (MAAS)', routing: 'CPU — no quality diff' },
-    { task: 'NER', cpu: hasLive ? fmt(p.nerMs) : '—', gpu: '~3.8s (MAAS)', routing: 'CPU — good enough for batch' },
-    { task: 'Summarization', cpu: hasLive ? fmt(p.summarizeMs) : '—', gpu: '~1.6s (MAAS)', routing: 'GPU — 3.3x faster (MAAS baseline), better output' },
-    { task: 'Drug Interactions', cpu: hasLive ? fmt(p.interactionsMs) : '—', gpu: 'n/a', routing: 'MCP tool — no LLM needed' },
-    { task: 'Full Pipeline', cpu: hasLive ? fmt(p.totalMs) : '—', gpu: '~3.5s (MAAS)', routing: 'Hybrid — CPU + GPU combined' },
+    {
+      task: 'Classification',
+      cpu: hasLive ? fmt(p.classifyMs) : '—',
+      gpu: gpu.classification ? fmt(gpu.classification.latency_ms) : loading ? '...' : '—',
+      routing: 'CPU — no quality diff',
+    },
+    {
+      task: 'NER',
+      cpu: hasLive ? fmt(p.nerMs) : '—',
+      gpu: gpu.ner ? fmt(gpu.ner.latency_ms) : loading ? '...' : '—',
+      routing: 'CPU — good enough for batch',
+    },
+    {
+      task: 'Summarization',
+      cpu: hasLive ? fmt(p.summarizeMs) : '—',
+      gpu: gpu.summarization ? fmt(gpu.summarization.latency_ms) : loading ? '...' : '—',
+      routing: gpu.summarization && hasLive && p.summarizeMs > 0
+        ? `GPU — ${(p.summarizeMs / gpu.summarization.latency_ms).toFixed(1)}x faster`
+        : 'GPU — faster, better output',
+    },
+    {
+      task: 'Drug Interactions',
+      cpu: hasLive ? fmt(p.interactionsMs) : '—',
+      gpu: 'n/a',
+      routing: 'MCP tool — no LLM needed',
+    },
+    {
+      task: 'Full Pipeline',
+      cpu: hasLive ? fmt(p.totalMs) : '—',
+      gpu: gpu.classification && gpu.ner && gpu.summarization
+        ? fmt(gpu.classification.latency_ms + gpu.ner.latency_ms + gpu.summarization.latency_ms)
+        : loading ? '...' : '—',
+      routing: 'Hybrid — CPU + GPU combined',
+    },
   ]
+
+  const gpuMonthlyCost = [gpu.classification, gpu.ner, gpu.summarization]
+    .filter(Boolean)
+    .reduce((sum, g) => sum + (g?.cost_monthly || 0), 0)
 
   return (
     <div className="demo-section">
@@ -77,7 +174,7 @@ export function Act05HonestQuestion({ onComplete }: Props) {
         <thead>
           <tr style={{ borderBottom: '1px solid var(--border)' }}>
             <th style={{ textAlign: 'left', padding: '10px 16px', color: 'var(--text-dim)', fontWeight: 500 }}>Task</th>
-            <th style={{ textAlign: 'right', padding: '10px 16px', color: 'var(--intel-cyan)', fontWeight: 600 }}>CPU (this run)</th>
+            <th style={{ textAlign: 'right', padding: '10px 16px', color: 'var(--intel-cyan)', fontWeight: 600 }}>CPU</th>
             <th style={{ textAlign: 'right', padding: '10px 16px', color: 'var(--gpu-amber)', fontWeight: 600 }}>Gaudi</th>
             <th style={{ textAlign: 'left', padding: '10px 16px', color: 'var(--text-dim)', fontWeight: 500 }}>Routing Decision</th>
           </tr>
@@ -100,6 +197,17 @@ export function Act05HonestQuestion({ onComplete }: Props) {
         </tbody>
       </motion.table>
 
+      {gpuMonthlyCost > 0 && (
+        <motion.div
+          style={{ textAlign: 'center', marginBottom: 16, fontSize: 13, color: 'var(--text-secondary)' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.1 }}
+        >
+          Monthly cost @10K/day: CPU = <strong style={{ color: 'var(--rh-green)' }}>$0</strong> · GPU = <strong style={{ color: 'var(--gpu-amber)' }}>${Math.round(gpuMonthlyCost)}</strong>
+        </motion.div>
+      )}
+
       <motion.div
         className="card"
         style={{ background: 'var(--surface-2)', borderLeft: '3px solid var(--intel-cyan)' }}
@@ -111,7 +219,7 @@ export function Act05HonestQuestion({ onComplete }: Props) {
           {hasLive ? (
             <>
               This pipeline ran at <strong style={{ color: 'var(--intel-cyan)' }}>{fmt(p.totalMs)}</strong> on Intel Xeon 6 CPU.{' '}
-              <strong style={{ color: 'var(--rh-green)' }}>Cost: $0.00.</strong><br /><br />
+              <strong style={{ color: 'var(--rh-green)' }}>Cost: {p.costMonthly === 0 ? '$0/mo' : `$${p.costMonthly}/mo`} @10K/day.</strong><br /><br />
             </>
           ) : null}
           <span style={{ color: 'var(--text-dim)', fontSize: 14 }}>

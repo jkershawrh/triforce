@@ -112,6 +112,7 @@ export function Act04ConfidentialInference({ onComplete }: Props) {
         totalMs: data.total_ms,
         entities: data.entities?.length || 0,
         interactions: data.drug_interactions?.length || 0,
+        costMonthly: data.cost_monthly || 0,
       })
     } catch {
       timersRef.current.forEach(clearTimeout)

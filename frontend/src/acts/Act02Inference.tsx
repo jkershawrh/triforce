@@ -24,6 +24,7 @@ interface PipelineResult {
   summary: string
   inference_log: Array<{ node: string; model?: string; latency_ms: number }>
   total_ms: number
+  cost_monthly?: number
 }
 
 interface FraudResult {
@@ -137,6 +138,7 @@ export function Act02Inference({ onComplete }: Props) {
         totalMs: data.total_ms,
         entities: data.entities?.length || 0,
         interactions: data.drug_interactions?.length || 0,
+        costMonthly: data.cost_monthly || 0,
       })
     } catch {
       timersRef.current.forEach(clearTimeout)

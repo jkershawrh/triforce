@@ -8,6 +8,7 @@ export interface PipelineMetrics {
   totalMs: number
   entities: number
   interactions: number
+  costMonthly: number
   timestamp?: number
   source?: 'live' | 'cached'
 }

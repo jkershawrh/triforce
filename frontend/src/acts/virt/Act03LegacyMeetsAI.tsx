@@ -24,7 +24,7 @@ export function Act03LegacyMeetsAI({ onComplete }: Props) {
         classifyMs: data.inference_ms || 0,
         nerMs: 0, interactionsMs: 0, summarizeMs: 0,
         totalMs: data.inference_ms || 0,
-        entities: 0, interactions: 0,
+        entities: 0, interactions: 0, costMonthly: 0,
       })
     } catch {
       setCallResult({ classification: 'discharge_summary', inference_ms: 828, model: 'granite-2b-cpu', simulated: true })
