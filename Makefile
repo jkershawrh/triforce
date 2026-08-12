@@ -149,9 +149,6 @@ test-deployment-d8: ## Stage D8 only: Secure variant (TDX Confidential Container
 test-deployment-d9: ## Stage D9 only: Virt variant (OpenShift Virtualization)
 	python3 -m pytest tests/test_deployment.py -v --tb=short -k "TestD9"
 
-test-deployment-d10: ## Stage D10 only: Govern variant (Kagenti)
-	python3 -m pytest tests/test_deployment.py -v --tb=short -k "TestD10"
-
 test-virt-edge: ## Edge + Virt demo validation (V0-V4)
 	python3 -m pytest tests/test_virt_edge.py -v --tb=short
 

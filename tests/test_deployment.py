@@ -15,7 +15,6 @@ import yaml
 REPO_ROOT = Path(__file__).parent.parent
 OBERON_DIR = REPO_ROOT / "infrastructure" / "oberon"
 ROSTER_PATH = OBERON_DIR / "model_roster.yaml"
-MATRIX_PATH = REPO_ROOT / "tests" / "deployment_matrix.yaml"
 NAMESPACE = "triforce"
 
 MAAS_ALIASES = [
