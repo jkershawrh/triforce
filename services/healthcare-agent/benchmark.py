@@ -11,11 +11,6 @@ from typing import Optional
 
 logger = logging.getLogger("triforce.benchmark")
 
-LITELLM_API_BASE = os.environ.get("LITELLM_API_BASE", "")
-LITELLM_API_KEY = os.environ.get("LITELLM_API_KEY", "")
-GPU_API_BASE = os.environ.get("GPU_API_BASE", "")
-GPU_API_KEY = os.environ.get("GPU_API_KEY", "")
-
 TASK_PROMPTS = {
     "classification": {
         "system": "Classify this clinical document into exactly one category: discharge_summary, progress_note, lab_report, radiology_report, pathology_report, surgical_note, consultation, prescription. Respond with only the category name.",

@@ -4,7 +4,6 @@ httpx>=0.28
 asyncpg>=0.30
 aiokafka>=0.12
 pydantic>=2.10
-pyyaml>=6.0
 langgraph>=0.6
 langchain-core>=0.3
 langchain-openai>=0.3

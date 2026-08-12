@@ -103,10 +103,6 @@ func (e *Engine) execute(run *WorkflowRun) {
 	switch run.WorkflowType {
 	case "patient_financial_risk":
 		e.executePatientFinancialRisk(run)
-	case "batch_classification":
-		e.executeBatchClassification(run)
-	case "compliance_sweep":
-		e.executeComplianceSweep(run)
 	default:
 		e.executeGeneric(run)
 	}
@@ -222,14 +218,6 @@ func (e *Engine) executePatientFinancialRisk(run *WorkflowRun) {
 	e.mu.Unlock()
 
 	log.Printf("Workflow %s completed: %s (%dms, %d agents)", run.ID, run.Status, run.DurationMs, len(involved))
-}
-
-func (e *Engine) executeBatchClassification(run *WorkflowRun) {
-	e.executeGeneric(run)
-}
-
-func (e *Engine) executeComplianceSweep(run *WorkflowRun) {
-	e.executeGeneric(run)
 }
 
 func (e *Engine) executeGeneric(run *WorkflowRun) {

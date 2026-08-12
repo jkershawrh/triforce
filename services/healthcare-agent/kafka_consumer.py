@@ -25,10 +25,8 @@ TOPIC_ALERTS = "healthcare.alerts"
 
 
 class HealthcareKafkaPipeline:
-    def __init__(self, graph_fn=None, classify_fn=None, extract_fn=None):
+    def __init__(self, graph_fn=None):
         self.graph_fn = graph_fn
-        self.classify_fn = classify_fn
-        self.extract_fn = extract_fn
         self.consumer = None
         self.producer = None
         self._running = False
@@ -174,19 +172,3 @@ class HealthcareKafkaPipeline:
             patient_id, result.get("classification"), len(entities), len(interactions), steps, total_ms,
         )
 
-    async def _process_legacy(self, patient_id, text, record_type):
-        """Fallback: process using individual functions (pre-LangGraph)."""
-        import models
-        if self.classify_fn:
-            req = models.ClassifyRequest(text=text[:50000])
-            classify_result = await self.classify_fn(req)
-            await self.producer.send(TOPIC_RESULTS, {
-                "patient_id": patient_id,
-                "analysis_type": "classification",
-                "result": {"classification": classify_result.classification.value},
-                "model": classify_result.model,
-                "accelerator": classify_result.accelerator,
-                "inference_ms": classify_result.inference_ms,
-                "kv_cache_hit": False,
-                "processed_at": datetime.now(timezone.utc).isoformat(),
-            })

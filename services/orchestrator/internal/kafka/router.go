@@ -9,12 +9,6 @@ import (
 	"time"
 )
 
-type Message struct {
-	Topic string
-	Key   string
-	Value []byte
-}
-
 type PatientRecord struct {
 	PatientID  string            `json:"patient_id"`
 	RecordType string            `json:"record_type"`

@@ -26,7 +26,6 @@ GPU_MODEL = os.environ.get("GPU_COMPLEX_MODEL", "granite-4.1-8b")
 CLASSIFY_MODEL = os.environ.get("CLASSIFY_MODEL", "qwen25-3b-cpu")
 NER_MODEL = os.environ.get("NER_MODEL", "granite-2b-cpu")
 SUMMARIZE_MODEL = os.environ.get("SUMMARIZE_MODEL", "qwen25-3b-cpu")
-REASONING_MODEL = os.environ.get("REASONING_MODEL", "phi3-mini-cpu")
 HETEROGENEOUS_ROUTING = os.environ.get("HETEROGENEOUS_ROUTING", "").lower() == "true"
 SEMANTIC_ROUTER_URL = os.environ.get("SEMANTIC_ROUTER_URL", "http://semantic-router:8094")
 
