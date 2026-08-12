@@ -13,38 +13,11 @@ import pytest
 import yaml
 
 REPO_ROOT = Path(__file__).parent.parent
-NAMESPACE = "triforce"
-KUBECONFIG = os.environ.get("KUBECONFIG", os.path.expanduser("~/.kube/config-oberon"))
+from helpers import oc, oc_json, curl_service, NAMESPACE
 
 
-def oc(*args, namespace=None):
-    cmd = ["oc", "--kubeconfig", KUBECONFIG] + list(args)
-    if namespace:
-        cmd += ["-n", namespace]
-    return subprocess.run(cmd, capture_output=True, text=True, timeout=180)
-
-
-def oc_json(*args, namespace=None):
-    result = oc(*args, "-o", "json", namespace=namespace)
-    if result.returncode != 0:
-        return None
-    return json.loads(result.stdout)
-
-
-def curl_via(pod_label, svc, port, path, method="GET", data=None, timeout=60, auth=None):
-    url = f"http://{svc}.{NAMESPACE}.svc:{port}{path}"
-    cmd = ["curl", "-s", "-m", str(timeout), url]
-    if auth:
-        cmd += ["-H", f"Authorization: Bearer {auth}"]
-    if method == "POST" and data:
-        cmd += ["-X", "POST", "-H", "Content-Type: application/json", "-d", json.dumps(data)]
-    result = oc("exec", "-n", NAMESPACE, "deploy/orchestrator", "--", *cmd)
-    if result.returncode != 0:
-        return None
-    try:
-        return json.loads(result.stdout)
-    except json.JSONDecodeError:
-        return result.stdout
+def curl_via(_pod_label, svc, port, path, **kwargs):
+    return curl_service(svc, port, path, **kwargs)
 
 
 SENSOR_PROMPT = (

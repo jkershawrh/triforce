@@ -13,32 +13,9 @@ import pytest
 import yaml
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-NAMESPACE = "triforce"
-KUBECONFIG = os.environ.get("KUBECONFIG", os.path.expanduser("~/.kube/config-oberon"))
 REGISTRY_PATH = os.path.join(REPO_ROOT, "tests", "claim_registry.yaml")
 
-
-def oc(*args, namespace=None):
-    cmd = ["oc", "--kubeconfig", KUBECONFIG] + list(args)
-    if namespace:
-        cmd += ["-n", namespace]
-    return subprocess.run(cmd, capture_output=True, text=True, timeout=180)
-
-
-def curl_svc(svc, port, path, method="GET", data=None, auth=None):
-    url = f"http://{svc}.{NAMESPACE}.svc:{port}{path}"
-    cmd = ["curl", "-s", "-m", "30", url]
-    if auth:
-        cmd += ["-H", f"Authorization: Bearer {auth}"]
-    if method == "POST" and data:
-        cmd += ["-X", "POST", "-H", "Content-Type: application/json", "-d", json.dumps(data)]
-    result = oc("exec", "-n", NAMESPACE, "deploy/orchestrator", "--", *cmd)
-    if result.returncode != 0:
-        return None
-    try:
-        return json.loads(result.stdout)
-    except json.JSONDecodeError:
-        return result.stdout
+from helpers import oc, curl_service as curl_svc, NAMESPACE
 
 
 class TestClaimRegistry:

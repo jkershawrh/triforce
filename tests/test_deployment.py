@@ -59,38 +59,7 @@ JUDGE_PROMPT = (
 )
 
 
-def oc(*args, namespace=None):
-    """Run an oc command and return stdout."""
-    cmd = ["oc"] + list(args)
-    if namespace:
-        cmd += ["-n", namespace]
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
-    return result
-
-
-def oc_json(*args, namespace=None):
-    """Run an oc command with -o json and return parsed dict."""
-    result = oc(*args, "-o", "json", namespace=namespace)
-    if result.returncode != 0:
-        return None
-    return json.loads(result.stdout)
-
-
-def curl_service(service, port, path, namespace=NAMESPACE, method="GET", data=None, timeout=60, auth=None):
-    """curl a ClusterIP service via oc exec from a debug pod."""
-    url = f"http://{service}.{namespace}.svc:{port}{path}"
-    cmd = ["curl", "-s", "-m", str(timeout), url]
-    if auth:
-        cmd += ["-H", f"Authorization: Bearer {auth}"]
-    if method == "POST" and data:
-        cmd += ["-X", "POST", "-H", "Content-Type: application/json", "-d", json.dumps(data)]
-    result = oc("exec", "-n", namespace, "deploy/orchestrator", "--", *cmd)
-    if result.returncode != 0:
-        return None
-    try:
-        return json.loads(result.stdout)
-    except json.JSONDecodeError:
-        return result.stdout
+from helpers import oc, oc_json, curl_service
 
 
 LITELLM_KEY = "local-oberon-key"
