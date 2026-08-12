@@ -83,14 +83,22 @@ Each module ends with Verify checklists and Learning Outcomes.
 
 ## Models
 
-**RHDP (5 MAAS models, $0/token):**
-| Model | Role |
-|-------|------|
-| granite-4-0-h-tiny-cpu | Speculative draft, fast classification |
-| granite-2b-cpu | NER, fraud scoring, speculative target |
-| qwen25-3b-cpu | Classification, summarization |
-| phi3-mini-cpu | Complex reasoning |
-| granite-3-2-8b-instruct-cpu | Fusion judge + heterogeneous "GPU" tier |
+**CPU — Intel Xeon 6 via MAAS ($0/token):**
+| Model | Params | Role |
+|-------|--------|------|
+| granite-4-0-h-tiny-cpu | ~1B | Speculative draft, fast classification |
+| granite-2b-cpu | 2B | NER, fraud scoring, speculative target |
+| qwen25-3b-cpu | 3B | Classification, summarization |
+| phi3-mini-cpu | 3.8B | Complex reasoning |
+| granite-3-2-8b-instruct-cpu | 8B | Fusion judge, reasoning |
+
+**GPU — Intel Gaudi via MAAS ($/token):**
+| Model | Params | Role |
+|-------|--------|------|
+| granite-3-2-8b-instruct | 8B | Reasoning, NER |
+| qwen3-14b | 14B | Multilingual reasoning |
+| gpt-oss-20b | 20B | Summarization |
+| gpt-oss-120b | 120B | Frontier reasoning |
 
 **Oberon (Intel lab, 10 local models via OVMS + bitnet.cpp):**
 | Model | Params | Role |
@@ -136,8 +144,8 @@ modules/
 ## Quick Start
 
 ```bash
-cp .env.example .env              # Add LITELLM_API_KEY
-source .env && export LITELLM_API_BASE LITELLM_API_KEY
+cp .env.example .env              # Add LITELLM_API_KEY (and GPU_API_* for Gaudi)
+source .env && export LITELLM_API_BASE LITELLM_API_KEY GPU_API_BASE GPU_API_KEY HETEROGENEOUS_ROUTING
 make up                           # Start PostgreSQL + Redpanda + all agents
 
 # Test endpoints
@@ -162,9 +170,9 @@ curl -s -X POST http://localhost:8081/api/v1/fusion \
 
 ```bash
 make test-contracts              # Stage 0: 122 contract tests
-make test-unit                   # Stage 2: 54 healthcare + 14 router + 13 finserv + 3 Go + 29 frontend
+make test-unit                   # Stage 2: 54 healthcare + 14 router + 13 finserv + 3 Go + 22 frontend
 make test-modules                # Stage 8: 13 module manifest + Helm tests
-make test-smoke                  # 19 live endpoint tests (no NaN, no empty, no crash)
+make test-benchmarks             # Stage 9: 24 benchmark + cost + GPU validation tests
 make test-platform               # ALL stages — platform green light
 ```
 
@@ -204,10 +212,13 @@ infrastructure/
   helm/              # Helm chart for OpenShift with module flags
   oberon/            # Intel lab overrides (10 OVMS models + LiteLLM)
 frontend/            # React 19 + Zustand + React Flow + Motion
-content/             # Showroom lab (base variant)
-content-secure/      # Showroom (TDX variant)
-content-virt/        # Showroom (Virtualization variant)
-tests/               # Validation matrix (11 stages) + benchmark rubric + smoke tests
+content-001/         # 001 Your First AI Inference (self-serve quickstart)
+content-101/         # 101 Model Deployment (~45 min)
+content-201/         # 201 Agent Creation (~45 min)
+content-301/         # 301 Multi-Agent AI at Scale (~2 hr)
+content-401/         # 401 Confidential AI / TDX (~1 hr)
+content-501/         # 501 VMs + AI / KubeVirt (~45 min)
+tests/               # Validation matrix (11 stages) + benchmark rubric + cost validation
 ```
 
 ## Container Images

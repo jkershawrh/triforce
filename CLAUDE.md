@@ -43,16 +43,16 @@ make up               # podman-compose (requires exported env vars)
 # FinServ uses system mvn; do not add Maven wrapper files.
 
 # Tests by stage (11 stages total)
-make test-contracts              # Stage 0: schema validation (120 tests)
+make test-contracts              # Stage 0: schema validation (122 tests)
 make test-infra                  # Stage 1: containers + health
-make test-unit                   # Stage 2: per-service logic (49+13+3+29 tests)
+make test-unit                   # Stage 2: per-service logic (54+13+3+22 tests)
 make test-contracts-compliance   # Stage 3: response schema compliance
 make test-integration            # Stage 4: cross-service workflows
 make test-scale                  # Stage 5: synthetic load
-make test-frontend               # Stage 6: live numbers accuracy
+make test-frontend               # Stage 6: live numbers accuracy + cost display
 make test-multinode              # Stage 7: horizontal scaling
-make test-modules                # Stage 8: module manifest + Helm validation (11 tests)
-make test-benchmarks             # Stage 9: benchmark rubric validation (20 tests)
+make test-modules                # Stage 8: module manifest + Helm validation (13 tests)
+make test-benchmarks             # Stage 9: benchmark rubric + cost + GPU validation (24 tests)
 make test-workflows              # Stage 10: end-to-end workflows (8 tests)
 make test-platform               # ALL stages — platform green light
 
@@ -114,7 +114,7 @@ content-401/         # Showroom lab — 401 Confidential AI (TDX)
 content-501/         # Showroom lab — 501 VMs + AI (KubeVirt)
 supplemental-ui/     # Shared Showroom CSS, favicon, partials
 scripts/             # generate-nav.py — builds nav from module manifests
-tests/               # Validation matrix (11 stages) + benchmark rubric
+tests/               # Validation matrix (11 stages) + benchmark rubric + cost validation
 ```
 
 ## Models Available (via MAAS/LiteLLM)
@@ -132,7 +132,6 @@ tests/               # Validation matrix (11 stages) + benchmark rubric
 | Model | Params | Use Case |
 |-------|--------|----------|
 | granite-3-2-8b-instruct | 8B | Reasoning, NER |
-| qwen3-14b | 14B | Multilingual reasoning |
 | qwen3-14b | 14B | Multilingual reasoning |
 | gpt-oss-20b | 20B | Summarization |
 | gpt-oss-120b | 120B | Frontier reasoning |
