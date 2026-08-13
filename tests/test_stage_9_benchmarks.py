@@ -167,6 +167,41 @@ class TestBenchmarkCostAndHardware:
         )
 
 
+@pytest.mark.skipif(SKIP_LIVE, reason="LITELLM_API_KEY not set")
+class TestGuideLLMBenchmark:
+    """stage_9: guidellm integration — start, poll, and validate results."""
+
+    def test_guidellm_start_returns_job_id(self):
+        resp = httpx.post(
+            f"{HEALTHCARE_URL}/api/v1/benchmark/guidellm",
+            json={"model": "granite-2b-cpu", "max_requests": 2, "max_seconds": 30},
+            timeout=10,
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "job_id" in data
+        assert data["status"] in ("queued", "running")
+        assert data["model"] == "granite-2b-cpu"
+
+    def test_guidellm_poll_returns_status(self):
+        start = httpx.post(
+            f"{HEALTHCARE_URL}/api/v1/benchmark/guidellm",
+            json={"model": "granite-2b-cpu", "max_requests": 2, "max_seconds": 30},
+            timeout=10,
+        ).json()
+        job_id = start["job_id"]
+
+        resp = httpx.get(f"{HEALTHCARE_URL}/api/v1/benchmark/guidellm/{job_id}", timeout=10)
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["status"] in ("queued", "running", "complete", "error")
+
+    def test_guidellm_unknown_job_returns_error(self):
+        resp = httpx.get(f"{HEALTHCARE_URL}/api/v1/benchmark/guidellm/nonexistent", timeout=10)
+        data = resp.json()
+        assert "error" in data
+
+
 class TestBenchmarkReproducibility:
     """stage_9: Benchmarks are reproducible within variance."""
 
