@@ -6,10 +6,11 @@ interface Props {
   title: string
   description: string
   status?: 'live' | 'tested' | 'roadmap' | 'planned'
+  badge?: string
   children: ReactNode
 }
 
-export function ModuleLayout({ title, description, status = 'live', children }: Props) {
+export function ModuleLayout({ title, description, status = 'live', badge, children }: Props) {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const fromAct = searchParams.get('from')
@@ -34,6 +35,15 @@ export function ModuleLayout({ title, description, status = 'live', children }: 
           }}>
             {status}
           </span>
+          {badge && (
+            <span style={{
+              fontSize: 10, fontWeight: 600, letterSpacing: '0.5px',
+              padding: '2px 8px', borderRadius: 4,
+              background: 'var(--surface-2)', color: 'var(--text-dim)',
+            }}>
+              {badge}
+            </span>
+          )}
         </div>
         <p style={{ color: 'var(--text-dim)', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
           {description}

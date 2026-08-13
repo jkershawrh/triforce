@@ -80,6 +80,11 @@ export function Act03Benchmark({ onComplete }: Props) {
         Same clinical text. Same question. Different models on different hardware.
         Watch the tradeoff: latency, quality, and cost side by side.
       </div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 4, background: 'var(--surface-2)', color: 'var(--text-dim)', fontWeight: 600, letterSpacing: '0.5px' }}>
+          powered by guidellm
+        </span>
+      </div>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
         {TASKS.map((t, i) => (
