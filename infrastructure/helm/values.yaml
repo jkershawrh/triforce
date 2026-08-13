@@ -92,7 +92,7 @@ modules:
     enabled: false
   speculative:
     enabled: false
-    draftModel: granite-350m
+    draftModel: granite-4-0-h-tiny-cpu
     targetModel: granite-2b-cpu
     speculativeModel: granite-2b-cpu-speculative
     numSpeculativeTokens: 5

@@ -36,9 +36,9 @@ TASK_PROMPTS = {
 }
 
 CPU_MODELS = os.environ.get("BENCHMARK_CPU_MODELS",
-    "granite-350m,granite-4-0-h-tiny-cpu,granite-2b-cpu,granite-2b-int8,"
-    "qwen25-3b-cpu,granite-4.1-3b,phi3-mini-cpu,"
-    "granite-3-2-8b-instruct-cpu,granite-4.1-8b"
+    "granite-4-0-h-tiny-cpu,granite-2b-cpu,"
+    "qwen25-3b-cpu,phi3-mini-cpu,"
+    "granite-3-2-8b-instruct-cpu"
 ).split(",")
 
 GPU_MODELS = os.environ.get("BENCHMARK_GPU_MODELS",

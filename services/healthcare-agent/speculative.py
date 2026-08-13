@@ -16,7 +16,7 @@ import llm_client
 from benchmark import TASK_PROMPTS
 
 DEFAULT_TARGET_MODEL = "granite-2b-cpu"
-DEFAULT_DRAFT_MODEL = "granite-350m"
+DEFAULT_DRAFT_MODEL = "granite-4-0-h-tiny-cpu"
 DEFAULT_SPECULATIVE_MODEL = "granite-2b-cpu-speculative"
 
 
