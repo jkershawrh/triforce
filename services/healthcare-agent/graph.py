@@ -69,11 +69,11 @@ def _resolve_api_base(model: str, text: str = "") -> tuple:
 
 
 def _get_llm(model: str = None, max_tokens: int = 1024, text: str = "") -> ChatOpenAI:
-    api_base, resolved_model, _ = _resolve_api_base(model or CLASSIFY_MODEL, text)
+    api_base, resolved_model, hardware = _resolve_api_base(model or CLASSIFY_MODEL, text)
     return ChatOpenAI(
         model=resolved_model,
         base_url=f"{api_base}/v1",
-        api_key=(GPU_API_KEY if api_base == GPU_API_BASE else LITELLM_API_KEY) or "no-key",
+        api_key=(GPU_API_KEY if hardware == "gpu" else LITELLM_API_KEY) or "no-key",
         temperature=0.1,
         max_tokens=max_tokens,
     )
