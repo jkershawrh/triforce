@@ -421,5 +421,27 @@ async def fusion_endpoint(req: dict):
     return await fusion.run_fusion(prompt, task)
 
 
+@app.post("/api/v1/benchmark/guidellm")
+async def guidellm_start(req: dict):
+    import guidellm_runner
+    model = req.get("model", "granite-2b-cpu")
+    job_id = await guidellm_runner.start_benchmark(
+        model=model,
+        rate_type=req.get("rate_type", "synchronous"),
+        max_requests=req.get("max_requests", 10),
+        max_seconds=req.get("max_seconds", 60),
+    )
+    return {"job_id": job_id, "status": "queued", "model": model}
+
+
+@app.get("/api/v1/benchmark/guidellm/{job_id}")
+async def guidellm_status(job_id: str):
+    import guidellm_runner
+    job = guidellm_runner.get_job(job_id)
+    if not job:
+        return {"error": "Job not found", "job_id": job_id}
+    return job
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=SERVICE_PORT)

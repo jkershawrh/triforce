@@ -7,6 +7,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY config.py .
 COPY llm_client.py .
+COPY guidellm_runner.py .
 COPY models.py .
 COPY agent.py .
 COPY db.py .

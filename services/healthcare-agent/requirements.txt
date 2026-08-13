@@ -7,3 +7,4 @@ pydantic>=2.10
 langgraph>=0.6
 langchain-core>=0.3
 langchain-openai>=0.3
+guidellm>=0.3
