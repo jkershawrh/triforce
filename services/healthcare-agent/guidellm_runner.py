@@ -86,6 +86,7 @@ async def _run(job_id, model, api_base, api_key, rate_type, max_requests, max_se
                         "validate_backend": False,
                     },
                     "profile": {"kind": rate_type},
+                    "tokenizer": "ibm-granite/granite-3.2-2b-instruct",
                     "data": [{
                         "kind": "synthetic_text",
                         "prompt_tokens": 128,
