@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion } from 'motion/react'
 import { ModuleLayout, StepCard, CpuGpuBadge } from '../../components/ModuleLayout'
 
@@ -10,15 +10,11 @@ const TASKS = [
 ]
 
 const CPU_MODELS = [
-  { id: 'granite-350m', label: 'granite-350m', hw: 'cpu', params: '350M', checked: false },
   { id: 'granite-4-0-h-tiny-cpu', label: 'granite-tiny', hw: 'cpu', params: '~1B', checked: false },
   { id: 'granite-2b-cpu', label: 'granite-2b', hw: 'cpu', params: '2B', checked: true },
-  { id: 'granite-2b-int8', label: 'granite-2b-int8', hw: 'cpu', params: '2B', checked: false },
   { id: 'qwen25-3b-cpu', label: 'qwen25-3b', hw: 'cpu', params: '3B', checked: true },
-  { id: 'granite-4.1-3b', label: 'granite-4.1-3b', hw: 'cpu', params: '3B', checked: false },
   { id: 'phi3-mini-cpu', label: 'phi3-mini', hw: 'cpu', params: '3.8B', checked: false },
   { id: 'granite-3-2-8b-instruct-cpu', label: 'granite-8b', hw: 'cpu', params: '8B', checked: false },
-  { id: 'granite-4.1-8b', label: 'granite-4.1-8b', hw: 'cpu', params: '8B', checked: false },
 ]
 
 const GPU_MODELS = [
@@ -60,6 +56,39 @@ export default function ModuleBenchmarking() {
   )
   const [results, setResults] = useState<BenchResult[] | null>(null)
   const [running, setRunning] = useState(false)
+  const [deepModel, setDeepModel] = useState('granite-2b-cpu')
+  const [deepJob, setDeepJob] = useState<any>(null)
+  const [deepRunning, setDeepRunning] = useState(false)
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => { return () => { if (pollRef.current) clearInterval(pollRef.current) } }, [])
+
+  const runDeepBenchmark = async () => {
+    setDeepRunning(true)
+    setDeepJob(null)
+    try {
+      const resp = await fetch('/healthcare/api/v1/benchmark/guidellm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: deepModel, rate_type: 'synchronous', max_requests: 10, max_seconds: 60 }),
+      })
+      const data = await resp.json()
+      setDeepJob(data)
+      if (pollRef.current) clearInterval(pollRef.current)
+      pollRef.current = setInterval(async () => {
+        const r = await fetch(`/healthcare/api/v1/benchmark/guidellm/${data.job_id}`)
+        const job = await r.json()
+        setDeepJob(job)
+        if (job.status === 'complete' || job.status === 'error') {
+          if (pollRef.current) clearInterval(pollRef.current)
+          setDeepRunning(false)
+        }
+      }, 3000)
+    } catch {
+      setDeepJob({ status: 'error', error: 'Backend not reachable' })
+      setDeepRunning(false)
+    }
+  }
 
   const toggleModel = (id: string) => {
     setSelectedModels(prev =>
@@ -224,6 +253,77 @@ export default function ModuleBenchmarking() {
           </motion.div>
         )
       })()}
+
+      <StepCard num={6} title="Deep Benchmark (guidellm)">
+        <div style={{ fontSize: 12, color: 'var(--text-dim)', marginBottom: 12, lineHeight: 1.6 }}>
+          Production-grade load sweep powered by Red Hat guidellm. Measures TTFT, p50/p95/p99 latency,
+          throughput, and tokens/sec over multiple requests. Takes 30-60 seconds.
+        </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <select value={deepModel} onChange={e => setDeepModel(e.target.value)}
+            style={{ fontSize: 12, padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface-1)', color: 'var(--text-primary)' }}>
+            {[...CPU_MODELS, ...GPU_MODELS].map(m => (
+              <option key={m.id} value={m.id}>{m.label} ({m.params}) — {m.hw.toUpperCase()}</option>
+            ))}
+          </select>
+          <button className="btn btn-primary" onClick={runDeepBenchmark} disabled={deepRunning}
+            style={{ fontSize: 12, padding: '6px 16px' }}>
+            {deepRunning ? 'Running guidellm...' : 'Run Deep Benchmark →'}
+          </button>
+        </div>
+
+        {deepJob && deepJob.status === 'running' && (
+          <div style={{ textAlign: 'center', marginTop: 16, fontSize: 13, color: 'var(--intel-cyan)' }}>
+            Benchmark running on {deepJob.model}... polling every 3s
+          </div>
+        )}
+
+        {deepJob && deepJob.status === 'complete' && deepJob.metrics && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: 'var(--rh-green)' }}>
+              {deepJob.model} — {deepJob.successful_requests}/{deepJob.total_requests} requests in {deepJob.duration_seconds}s
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  <th style={{ textAlign: 'left', padding: '6px 10px', color: 'var(--text-dim)' }}>Metric</th>
+                  <th style={{ textAlign: 'right', padding: '6px 10px', color: 'var(--text-dim)' }}>Mean</th>
+                  <th style={{ textAlign: 'right', padding: '6px 10px', color: 'var(--text-dim)' }}>p50</th>
+                  <th style={{ textAlign: 'right', padding: '6px 10px', color: 'var(--text-dim)' }}>p95</th>
+                  <th style={{ textAlign: 'right', padding: '6px 10px', color: 'var(--text-dim)' }}>p99</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { key: 'request_latency', label: 'Request Latency (s)' },
+                  { key: 'time_to_first_token_ms', label: 'TTFT (ms)' },
+                  { key: 'inter_token_latency_ms', label: 'Inter-Token Latency (ms)' },
+                  { key: 'output_tokens_per_second', label: 'Output Tokens/sec' },
+                  { key: 'requests_per_second', label: 'Requests/sec' },
+                ].map(row => {
+                  const m = deepJob.metrics[row.key]
+                  if (!m) return null
+                  return (
+                    <tr key={row.key} style={{ borderBottom: '1px solid var(--border)' }}>
+                      <td style={{ padding: '6px 10px' }}>{row.label}</td>
+                      <td className="mono" style={{ padding: '6px 10px', textAlign: 'right', fontWeight: 700, color: 'var(--intel-cyan)' }}>{m.mean ?? '—'}</td>
+                      <td className="mono" style={{ padding: '6px 10px', textAlign: 'right' }}>{m.p50 ?? '—'}</td>
+                      <td className="mono" style={{ padding: '6px 10px', textAlign: 'right' }}>{m.p95 ?? '—'}</td>
+                      <td className="mono" style={{ padding: '6px 10px', textAlign: 'right', color: 'var(--rh-orange)' }}>{m.p99 ?? '—'}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </motion.div>
+        )}
+
+        {deepJob && deepJob.status === 'error' && (
+          <div style={{ textAlign: 'center', marginTop: 12, fontSize: 12, color: 'var(--rh-orange)' }}>
+            Error: {deepJob.error}
+          </div>
+        )}
+      </StepCard>
     </ModuleLayout>
   )
 }
