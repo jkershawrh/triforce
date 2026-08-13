@@ -71,6 +71,8 @@ spec:
               value: "8081"
             - name: ADAPTIVE_CLASSIFICATION
               value: "true"
+            - name: HF_TOKEN
+              value: {{ .Values.healthcareAgent.hfToken | default "" | quote }}
             {{- if .Values.modules.heterogeneous.enabled }}
             - name: HETEROGENEOUS_ROUTING
               value: "true"

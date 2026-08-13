@@ -73,6 +73,7 @@ async def _run(job_id, model, api_base, api_key, rate_type, max_requests, max_se
             os.environ["GUIDELLM__OPENAI__API_KEY"] = api_key or ""
             os.environ["GUIDELLM__OPENAI__BASE_URL"] = api_base or ""
             os.environ["GUIDELLM__PREFERRED_ROUTE"] = "chat_completions"
+            os.environ["HF_HOME"] = "/tmp/hf_cache"
 
             from guidellm.benchmark import BenchmarkScenario, benchmark_generative_text
 
@@ -86,7 +87,7 @@ async def _run(job_id, model, api_base, api_key, rate_type, max_requests, max_se
                         "validate_backend": False,
                     },
                     "profile": {"kind": rate_type},
-                    "tokenizer": "ibm-granite/granite-3.2-2b-instruct",
+                    "tokenizer": {"kind": "hf_auto", "model": "ibm-granite/granite-3.2-2b-instruct"},
                     "data": [{
                         "kind": "synthetic_text",
                         "prompt_tokens": 128,
@@ -96,6 +97,7 @@ async def _run(job_id, model, api_base, api_key, rate_type, max_requests, max_se
                         {"kind": "max_duration", "seconds": max_seconds},
                         {"kind": "max_requests", "count": max_requests},
                     ],
+                    "outputs": [],
                 },
                 "benchmarks": [{}],
             })

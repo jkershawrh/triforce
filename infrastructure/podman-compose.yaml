@@ -69,6 +69,7 @@ services:
       GPU_API_BASE: "${GPU_API_BASE:-}"
       GPU_API_KEY: "${GPU_API_KEY:-}"
       HETEROGENEOUS_ROUTING: "${HETEROGENEOUS_ROUTING:-false}"
+      HF_TOKEN: "${HF_TOKEN:-}"
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       POSTGRES_DB: triforce
