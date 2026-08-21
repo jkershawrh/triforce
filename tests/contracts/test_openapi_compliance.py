@@ -97,6 +97,53 @@ class TestOpenAPIContractValidation:
                 )
 
 
+class TestSharedSchemaConsistency:
+    """Stage 0: Schemas duplicated across specs must stay structurally consistent."""
+
+    def _schema_structure(self, schema, ignore_keys=("const", "example", "description")):
+        """Strip service-specific fields for structural comparison."""
+        if isinstance(schema, dict):
+            return {k: self._schema_structure(v, ignore_keys)
+                    for k, v in schema.items() if k not in ignore_keys}
+        if isinstance(schema, list):
+            return [self._schema_structure(v, ignore_keys) for v in schema]
+        return schema
+
+    @pytest.mark.parametrize("spec_file", ["healthcare-agent.yaml", "finserv-agent.yaml", "orchestrator.yaml"])
+    def test_health_response_structure_matches(self, spec_file):
+        spec = load_spec(spec_file)
+        schema = spec["components"]["schemas"]["HealthResponse"]
+        structure = self._schema_structure(schema)
+        assert structure["required"] == ["status", "service", "version"]
+        assert {"status", "service", "version"} <= set(structure["properties"].keys())
+        assert structure["properties"]["status"]["enum"] == ["healthy", "degraded", "unhealthy"]
+
+    def test_a2a_schemas_share_required_property_names(self):
+        protocol = load_spec("a2a-protocol.yaml")
+        finserv = load_spec("finserv-agent.yaml")
+        for schema_name in ["AgentCard", "JsonRpcRequest"]:
+            proto_required = set(protocol["components"]["schemas"][schema_name].get("required", []))
+            finserv_props = set(finserv["components"]["schemas"][schema_name].get("properties", {}).keys())
+            missing = proto_required - finserv_props
+            assert not missing, (
+                f"{schema_name} in finserv-agent.yaml missing required properties from a2a-protocol.yaml: {missing}"
+            )
+
+    def test_fusion_response_matches_implementation(self):
+        spec = load_spec("healthcare-agent.yaml")
+        schema = spec["components"]["schemas"]["FusionResponse"]
+        required = schema.get("required", [])
+        assert "panel" in required, "FusionResponse must require panel"
+        assert "judge" in required, "FusionResponse must require judge"
+        panel_props = schema["properties"]["panel"]["properties"]
+        assert "count" in panel_props
+        assert "models" in panel_props
+        assert "responses" in panel_props
+        judge_props = schema["properties"]["judge"]["properties"]
+        assert "synthesis" in judge_props
+        assert "consensus" in judge_props
+
+
 class TestHealthcareAgentContract:
     """Stage 0: Healthcare agent contract has required domain endpoints."""
 

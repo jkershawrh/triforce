@@ -949,24 +949,62 @@ components:
 
     FusionResponse:
       type: object
-      required: [status, total_ms, panel_results, judge_synthesis]
+      required: [task, status, total_ms, panel, judge]
       properties:
+        task:
+          type: string
         status:
           type: string
         total_ms:
           type: integer
           minimum: 0
-        panel_results:
-          type: array
-          items:
-            type: object
-            properties:
-              model:
+        total_models_called:
+          type: integer
+          minimum: 0
+        panel:
+          type: object
+          required: [models, count, latency_ms, responses]
+          properties:
+            models:
+              type: array
+              items:
                 type: string
-              output:
-                type: string
-              latency_ms:
-                type: integer
-                minimum: 0
-        judge_synthesis:
-          type: string
+            count:
+              type: integer
+              minimum: 0
+            latency_ms:
+              type: integer
+              minimum: 0
+            responses:
+              type: array
+              items:
+                type: object
+                properties:
+                  model:
+                    type: string
+                  latency_ms:
+                    type: integer
+                    minimum: 0
+                  tokens:
+                    type: integer
+                    minimum: 0
+        judge:
+          type: object
+          required: [model, synthesis]
+          properties:
+            model:
+              type: string
+            latency_ms:
+              type: integer
+              minimum: 0
+            consensus:
+              type: string
+            contradictions:
+              type: string
+            blind_spots:
+              type: string
+            synthesis:
+              type: string
+            tokens:
+              type: integer
+              minimum: 0
