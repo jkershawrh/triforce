@@ -120,9 +120,9 @@ benchmark_rubric:
             - model: granite-4-0-h-tiny-cpu
               hardware: cpu
               baseline_ms: null
-              max_ms: 1500
+              max_ms: 5000
               expected_output: discharge_summary
-              target_environment: oberon
+              target_environment: maas
             - model: granite-2b-cpu
               hardware: cpu
               baseline_ms: 858
