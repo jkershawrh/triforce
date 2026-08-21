@@ -33,6 +33,8 @@ spec:
               value: "/app/config/routes.yaml"
             - name: COMPLEX_MODEL
               value: {{ .Values.semanticRouter.complexModel | default "qwen25-3b-cpu" }}
+            - name: HF_TOKEN
+              value: {{ .Values.healthcareAgent.hfToken | default "" | quote }}
             {{- if .Values.modules.heterogeneous.enabled }}
             - name: HETEROGENEOUS_ROUTING
               value: "true"
