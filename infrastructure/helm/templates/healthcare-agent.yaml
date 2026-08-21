@@ -147,7 +147,7 @@ metadata:
   name: healthcare-agent
   namespace: {{ .Release.Namespace }}
   annotations:
-    haproxy.router.openshift.io/timeout: "120s"
+    haproxy.router.openshift.io/timeout: "180s"
 spec:
   to:
     kind: Service

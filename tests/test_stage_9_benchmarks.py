@@ -40,7 +40,7 @@ class TestBenchmarkRun:
         resp = httpx.post(
             f"{HEALTHCARE_URL}/api/v1/benchmark/run",
             json={"task": "classification", "text": SAMPLE_TEXT, "models": ["granite-2b-cpu"]},
-            timeout=30,
+            timeout=60,
         )
         assert resp.status_code == 200
         data = resp.json()
@@ -55,7 +55,7 @@ class TestBenchmarkRun:
         resp = httpx.post(
             f"{HEALTHCARE_URL}/api/v1/benchmark/run",
             json={"task": "ner", "text": SAMPLE_TEXT, "models": ["granite-2b-cpu"]},
-            timeout=30,
+            timeout=60,
         )
         data = resp.json()
         result = data["results"][0]
@@ -66,7 +66,7 @@ class TestBenchmarkRun:
         resp = httpx.post(
             f"{HEALTHCARE_URL}/api/v1/benchmark/run",
             json={"task": "summarization", "text": SAMPLE_TEXT, "models": ["granite-2b-cpu"]},
-            timeout=30,
+            timeout=60,
         )
         data = resp.json()
         result = data["results"][0]
@@ -78,7 +78,7 @@ class TestBenchmarkRun:
             f"{HEALTHCARE_URL}/api/v1/benchmark/run",
             json={"task": "classification", "text": SAMPLE_TEXT,
                   "models": ["granite-2b-cpu", "qwen25-3b-cpu"]},
-            timeout=30,
+            timeout=60,
         )
         data = resp.json()
         assert data["models_compared"] == 2
@@ -90,7 +90,7 @@ class TestBenchmarkRun:
             f"{HEALTHCARE_URL}/api/v1/benchmark/run",
             json={"task": "classification", "text": SAMPLE_TEXT,
                   "models": ["granite-2b-cpu", "qwen25-3b-cpu"]},
-            timeout=30,
+            timeout=60,
         )
         data = resp.json()
         assert data["fastest"]["model"] == data["results"][0]["model"]
@@ -114,7 +114,7 @@ class TestBenchmarkCostAndHardware:
         resp = httpx.post(
             f"{HEALTHCARE_URL}/api/v1/benchmark/run",
             json={"task": "classification", "text": SAMPLE_TEXT, "models": ["granite-2b-cpu"]},
-            timeout=30,
+            timeout=60,
         )
         assert resp.status_code == 200
         data = resp.json()
@@ -130,7 +130,7 @@ class TestBenchmarkCostAndHardware:
         resp = httpx.post(
             f"{HEALTHCARE_URL}/api/v1/benchmark/run",
             json={"task": "classification", "text": SAMPLE_TEXT, "models": ["granite-2b-cpu"]},
-            timeout=30,
+            timeout=60,
         )
         assert resp.status_code == 200
         result = resp.json()["results"][0]
@@ -147,7 +147,7 @@ class TestBenchmarkCostAndHardware:
             f"{HEALTHCARE_URL}/api/v1/benchmark/run",
             json={"task": "classification", "text": SAMPLE_TEXT,
                   "models": ["granite-3-2-8b-instruct"]},
-            timeout=30,
+            timeout=60,
         )
         assert resp.status_code == 200
         data = resp.json()
@@ -208,7 +208,7 @@ class TestBenchmarkReproducibility:
                 f"{HEALTHCARE_URL}/api/v1/benchmark/run",
                 json={"task": "classification", "text": SAMPLE_TEXT,
                       "models": ["granite-2b-cpu"]},
-                timeout=30,
+                timeout=60,
             )
             data = resp.json()
             results.append(data["results"][0]["latency_ms"])

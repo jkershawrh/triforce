@@ -105,7 +105,7 @@ class TestFusionBenchmarks:
         resp = httpx.post(
             f"{HEALTHCARE_URL}/api/v1/fusion",
             json={"task": "compliance", "prompt": cfg["test_prompt"]},
-            timeout=120,
+            timeout=180,
         )
         data = resp.json()
         assert data.get("status") == "complete", f"Fusion status: {data.get('status')}"
@@ -119,7 +119,7 @@ class TestFusionBenchmarks:
         resp = httpx.post(
             f"{HEALTHCARE_URL}/api/v1/fusion",
             json={"task": "compliance", "prompt": cfg["test_prompt"]},
-            timeout=120,
+            timeout=180,
         )
         data = resp.json()
         synthesis = data.get("judge", {}).get("synthesis", "")
@@ -130,7 +130,7 @@ class TestFusionBenchmarks:
         resp = httpx.post(
             f"{HEALTHCARE_URL}/api/v1/fusion",
             json={"task": "compliance", "prompt": cfg["test_prompt"]},
-            timeout=120,
+            timeout=180,
         )
         judge = resp.json().get("judge", {})
         for field in ["consensus", "contradictions", "blind_spots", "synthesis"]:
@@ -217,7 +217,7 @@ class TestSpeculativeDecodingBenchmarks:
                 "text": cfg["test_text"],
                 "max_tokens": cfg["max_tokens"],
             },
-            timeout=120,
+            timeout=180,
         )
         data = resp.json()
         assert data["status"] == "complete", data

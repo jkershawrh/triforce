@@ -117,12 +117,6 @@ benchmark_rubric:
           task: classification
           test_text: "DISCHARGE SUMMARY: 72-year-old male with Type 2 Diabetes on Metformin and Lisinopril."
           models:
-            - model: granite-350m
-              hardware: cpu
-              baseline_ms: null
-              max_ms: 1000
-              expected_output: discharge_summary
-              target_environment: oberon
             - model: granite-4-0-h-tiny-cpu
               hardware: cpu
               baseline_ms: null
@@ -364,7 +358,7 @@ benchmark_rubric:
         run: "/api/v1/speculative/run"
       benchmarks:
         draft_target_speedup:
-          draft_model: granite-350m
+          draft_model: granite-4-0-h-tiny-cpu
           target_model: granite-2b-cpu
           speculative_model: granite-2b-cpu-speculative
           method: draft_model

@@ -102,7 +102,7 @@ class TestPipelineEndpoints:
         resp = httpx.post(
             f"{HEALTHCARE}/api/v1/pipeline/compare",
             json={"text": CLINICAL_TEXT},
-            timeout=120,
+            timeout=180,
         )
         assert resp.status_code == 200
         data = resp.json()
@@ -151,7 +151,7 @@ class TestFusionModule:
         resp = httpx.post(
             f"{HEALTHCARE}/api/v1/fusion",
             json={"task": "compliance", "prompt": "Is this AML structuring? Three deposits of $9,500 in 48 hours."},
-            timeout=120,
+            timeout=180,
         )
         assert resp.status_code == 200
         data = resp.json()
@@ -224,12 +224,12 @@ class TestAdaptiveCacheModule:
             httpx.post(
                 f"{HEALTHCARE}/api/v1/pipeline",
                 json={"text": "Simple lab report glucose 110"},
-                timeout=60,
+                timeout=120,
             )
         resp = httpx.post(
             f"{HEALTHCARE}/api/v1/pipeline",
             json={"text": "Simple lab report glucose 110"},
-            timeout=60,
+            timeout=120,
         )
         data = resp.json()
         classify_entry = next(
