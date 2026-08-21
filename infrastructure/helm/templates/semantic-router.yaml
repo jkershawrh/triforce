@@ -58,6 +58,7 @@ spec:
               port: 8094
             initialDelaySeconds: 120
             periodSeconds: 15
+            timeoutSeconds: 10
             failureThreshold: 10
           livenessProbe:
             httpGet:
@@ -65,6 +66,8 @@ spec:
               port: 8094
             initialDelaySeconds: 180
             periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
       volumes:
         - name: router-config
           configMap:
