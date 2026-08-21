@@ -1,21 +1,18 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'motion/react'
 import { useDemoMetrics } from '../stores/demoStore'
+import { MetricCard } from '../components/MetricCard'
+import { fmt } from '../utils/format'
+import { VERTICALS } from '../VerticalContext'
 
 interface Props { onComplete?: () => void }
 
-const SAMPLE_TEXT = 'DISCHARGE SUMMARY: 72-year-old male with Type 2 Diabetes on Metformin 500mg and Lisinopril 10mg. Recent STEMI with PCI to RCA. Aspirin 81mg and Clopidogrel 75mg prescribed.'
+const SAMPLE_TEXT = VERTICALS.healthcare.sampleTexts.pipeline
 
 interface GpuBenchmark {
   classification?: { latency_ms: number; cost_monthly: number }
   ner?: { latency_ms: number; cost_monthly: number }
   summarization?: { latency_ms: number; cost_monthly: number }
-}
-
-function fmt(ms: number): string {
-  if (ms <= 0) return '—'
-  if (ms < 1000) return `${ms}ms`
-  return `${(ms / 1000).toFixed(1)}s`
 }
 
 export function Act05HonestQuestion({ onComplete }: Props) {
@@ -141,18 +138,7 @@ export function Act05HonestQuestion({ onComplete }: Props) {
         gap: 10, marginBottom: 24,
       }}>
         {metrics.map((m, i) => (
-          <motion.div
-            key={m.label}
-            className="card"
-            style={{ borderLeft: `3px solid ${m.color}`, padding: '12px 16px' }}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-          >
-            <div style={{ fontSize: 10, color: 'var(--text-dim)', textTransform: 'uppercase' }}>{m.label}</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: m.color, marginTop: 4 }}>{m.value}</div>
-            <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>{m.detail}</div>
-          </motion.div>
+          <MetricCard key={m.label} {...m} index={i} />
         ))}
       </div>
 

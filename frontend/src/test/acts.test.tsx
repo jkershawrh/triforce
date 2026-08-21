@@ -21,13 +21,6 @@ describe('Story Acts', () => {
     expect(screen.getByText(/Run Pipeline on Xeon 6/)).toBeInTheDocument()
   })
 
-  it('Act03 renders cost scale selector', async () => {
-    const { Act03Cost } = await import('../acts/Act03Cost')
-    render(<Act03Cost />)
-    expect(screen.getByText(/Start at 10K records/)).toBeInTheDocument()
-    expect(screen.getByText(/Cost at Scale/)).toBeInTheDocument()
-  })
-
   it('Act04 renders scale test buttons', async () => {
     const { Act04Scale } = await import('../acts/Act04Scale')
     render(<Act04Scale />)

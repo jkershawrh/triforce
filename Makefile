@@ -1,4 +1,4 @@
-.PHONY: help up down test-contracts test-infra test-unit test-contracts-compliance test-integration test-scale test-frontend test-multinode test-modules test-benchmarks test-workflows test-all test-platform test-deployment clean build-site-001 build-site-101 build-site-201 build-site-301 build-site-401 build-site-501 build-all-sites
+.PHONY: help up down test-contracts test-infra test-unit test-contracts-compliance test-integration test-scale test-frontend test-multinode test-modules test-benchmarks test-workflows test-all test-platform test-deployment clean build-all-sites
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -119,35 +119,8 @@ test-deployment: ## Stages D0-D7: Deployment validation for Intel lab cluster (o
 	@echo "  OBERON DEPLOYMENT: ALL STAGES PASSED"
 	@echo "=========================================="
 
-test-deployment-d0: ## Stage D0 only: Model contracts
-	python3 -m pytest tests/test_deployment.py -v --tb=short -k "TestD0"
-
-test-deployment-d1: ## Stage D1 only: Model infrastructure
-	python3 -m pytest tests/test_deployment.py -v --tb=short -k "TestD1"
-
-test-deployment-d2: ## Stage D2 only: Model validation
-	python3 -m pytest tests/test_deployment.py -v --tb=short -k "TestD2"
-
-test-deployment-d3: ## Stage D3 only: LiteLLM proxy
-	python3 -m pytest tests/test_deployment.py -v --tb=short -k "TestD3"
-
-test-deployment-d4: ## Stage D4 only: App services
-	python3 -m pytest tests/test_deployment.py -v --tb=short -k "TestD4"
-
-test-deployment-d5: ## Stage D5 only: Integration
-	python3 -m pytest tests/test_deployment.py -v --tb=short -k "TestD5"
-
-test-deployment-d6: ## Stage D6 only: Benchmarks
-	python3 -m pytest tests/test_deployment.py -v --tb=short -k "TestD6"
-
-test-deployment-d7: ## Stage D7 only: All 14 modules
-	python3 -m pytest tests/test_deployment.py -v --tb=short -k "TestD7"
-
-test-deployment-d8: ## Stage D8 only: Secure variant (TDX Confidential Containers)
-	python3 -m pytest tests/test_deployment.py -v --tb=short -k "TestD8"
-
-test-deployment-d9: ## Stage D9 only: Virt variant (OpenShift Virtualization)
-	python3 -m pytest tests/test_deployment.py -v --tb=short -k "TestD9"
+test-deployment-d%: ## Stage D% only: run single deployment stage
+	python3 -m pytest tests/test_deployment.py -v --tb=short -k "TestD$*"
 
 test-virt-edge: ## Edge + Virt demo validation (V0-V4)
 	python3 -m pytest tests/test_virt_edge.py -v --tb=short
@@ -234,23 +207,8 @@ build-all: build-healthcare build-finserv build-orchestrator ## Build all 301 co
 
 # --- Showroom Sites ---
 
-build-site-001: ## Build 001 showroom site
-	npx antora site-001.yml
-
-build-site-101: ## Build 101 showroom site
-	npx antora site-101.yml
-
-build-site-201: ## Build 201 showroom site
-	npx antora site-201.yml
-
-build-site-301: ## Build 301 showroom site
-	npx antora site-301.yml
-
-build-site-401: ## Build 401 showroom site
-	npx antora site-401.yml
-
-build-site-501: ## Build 501 showroom site
-	npx antora site-501.yml
+build-site-%: ## Build showroom site by number (e.g. build-site-001)
+	npx antora site-$*.yml
 
 build-all-sites: build-site-001 build-site-101 build-site-201 build-site-301 build-site-401 build-site-501 ## Build all 6 showroom sites
 

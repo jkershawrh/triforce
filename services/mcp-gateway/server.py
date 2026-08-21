@@ -17,7 +17,8 @@ from typing import Optional
 import uvicorn
 from fastapi import FastAPI
 
-app = FastAPI(title="Triforce MCP Gateway", version="0.1.0")
+TRIFORCE_VERSION = os.environ.get("TRIFORCE_VERSION", "0.1.0")
+app = FastAPI(title="Triforce MCP Gateway", version=TRIFORCE_VERSION)
 
 SERVICE_PORT = int(os.environ.get("SERVICE_PORT", "8091"))
 CONTRACTS_DIR = pathlib.Path(os.environ.get("CONTRACTS_DIR", str(pathlib.Path(__file__).parent.parent.parent / "contracts" / "mcp")))
@@ -127,6 +128,9 @@ def execute_tool(tool_name: str, arguments: dict) -> dict:
             ("warfarin", "metformin"): ("moderate", "Metformin may enhance anticoagulant effect. Monitor INR."),
             ("warfarin", "atorvastatin"): ("moderate", "Statins may alter warfarin metabolism. Monitor INR."),
             ("metformin", "furosemide"): ("moderate", "Furosemide may increase metformin levels. Monitor renal function."),
+            ("lisinopril", "amlodipine"): ("minor", "Additive hypotensive effect. Often combined intentionally. Monitor blood pressure."),
+            ("warfarin", "omeprazole"): ("moderate", "PPIs may alter warfarin metabolism via CYP2C19. Monitor INR."),
+            ("gabapentin", "metformin"): ("minor", "No significant interaction. Both may be co-prescribed safely."),
         }
         known = {tuple(sorted(k)): v for k, v in known_raw.items()}
         interactions = []
@@ -175,7 +179,7 @@ def execute_tool(tool_name: str, arguments: dict) -> dict:
         return {
             "agent_name": arguments.get("agent_name", "unknown"),
             "status": "active",
-            "url": "http://localhost:8081",
+            "url": os.environ.get("HEALTHCARE_URL", "http://localhost:8081"),
             "skills": [],
         }
 

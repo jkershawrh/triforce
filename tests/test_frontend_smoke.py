@@ -24,18 +24,16 @@ import os
 import httpx
 import pytest
 
-HEALTHCARE = os.environ.get("HEALTHCARE_URL", "http://localhost:8081")
+from conftest import HEALTHCARE_URL, FINSERV_URL, SAMPLE_TEXT
+
+HEALTHCARE = HEALTHCARE_URL
 ROUTER = os.environ.get("ROUTER_URL", "http://localhost:8094")
-FINSERV = os.environ.get("FINSERV_URL", "http://localhost:8082")
+FINSERV = FINSERV_URL
 BITNET = os.environ.get("BITNET_URL", "http://localhost:8080")
 ORCHESTRATOR = os.environ.get("ORCHESTRATOR_URL", "http://localhost:8083")
 MCP_GATEWAY = os.environ.get("MCP_GATEWAY_URL", "http://localhost:8091")
 
-CLINICAL_TEXT = (
-    "DISCHARGE SUMMARY: 72-year-old male with Type 2 Diabetes on "
-    "Metformin 500mg and Lisinopril 10mg. Started on Aspirin 81mg "
-    "and Clopidogrel 75mg. Recent STEMI with PCI to RCA."
-)
+CLINICAL_TEXT = SAMPLE_TEXT
 
 
 def _is_reachable(url):

@@ -76,7 +76,8 @@ class HealthcareKafkaPipeline:
                 result = await self.graph_fn(text, patient_id)
                 await self._publish_graph_results(patient_id, record_type, result)
             else:
-                await self._process_legacy(patient_id, text, record_type)
+                logger.warning("No graph_fn configured, skipping patient %s", patient_id)
+                return
 
         except Exception as e:
             logger.error("Failed to process patient %s: %s", patient_id, e)

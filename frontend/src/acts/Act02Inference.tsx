@@ -3,10 +3,11 @@ import { motion } from 'motion/react'
 import { PipelineFlow } from '../components/PipelineFlow'
 import { type PipelineNode } from '../components/PipelineAnimation'
 import { useDemoMetrics } from '../stores/demoStore'
+import { VERTICALS } from '../VerticalContext'
 
 interface Props { onComplete?: () => void }
 
-const SAMPLE_TEXT = 'DISCHARGE SUMMARY: 72-year-old male with Type 2 Diabetes on Metformin and Lisinopril. Recent STEMI with PCI to RCA. Started on Aspirin 81mg, Clopidogrel 75mg, Atorvastatin 80mg. Monitoring for bleeding risk given dual antiplatelet therapy.'
+const SAMPLE_TEXT = VERTICALS.healthcare.sampleTexts.pipeline
 
 const INITIAL_NODES: PipelineNode[] = [
   { id: 'classify', label: 'Classify', model: 'granite-2b-cpu', status: 'pending' },

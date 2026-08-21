@@ -16,6 +16,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
+import config
 import db
 import models
 
@@ -98,7 +99,7 @@ async def lifespan(app):
     await db.close_pool()
 
 
-app = FastAPI(title="Triforce Healthcare Agent", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="Triforce Healthcare Agent", version=config.TRIFORCE_VERSION, lifespan=lifespan)
 
 
 # --- Health ---
@@ -303,8 +304,8 @@ async def _run_pipeline_with_models(text: str, patient_id: str = None,
         for e in inference_log
         if e.get("accelerator") == "gpu"
     )
-    cost_per_req = gpu_tokens * 0.0003 / 1000
-    cost_monthly = round(cost_per_req * 10000 * 30, 2)
+    cost_per_req = gpu_tokens * config.GPU_COST_PER_TOKEN
+    cost_monthly = round(cost_per_req * config.DEFAULT_DAILY_REQUESTS * config.DAYS_PER_MONTH, 2)
 
     entities = _to_medical_entities(result.get("entities", []))
 

@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import os
 from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, Field
+
+TRIFORCE_VERSION = os.environ.get("TRIFORCE_VERSION", "0.1.0")
 
 
 class HealthStatus(str, Enum):
@@ -17,7 +20,7 @@ class HealthStatus(str, Enum):
 class HealthResponse(BaseModel):
     status: HealthStatus
     service: str = "solution-agent"
-    version: str = "0.1.0"
+    version: str = TRIFORCE_VERSION
 
 
 class AdviseRequest(BaseModel):

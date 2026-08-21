@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import uuid
 from enum import Enum
 from typing import Optional
@@ -29,7 +30,7 @@ class Dependencies(BaseModel):
 class HealthResponse(BaseModel):
     status: HealthStatus
     service: str = "healthcare-agent"
-    version: str = "0.1.0"
+    version: str = os.environ.get("TRIFORCE_VERSION", "0.1.0")
     dependencies: Optional[Dependencies] = None
 
 
@@ -157,8 +158,8 @@ class AgentSkill(BaseModel):
 class AgentCard(BaseModel):
     name: str = "Healthcare Agent"
     description: str = "Clinical NLP agent for medical document classification, entity extraction, and patient record summarization. Runs on Intel Xeon 6 CPU."
-    version: str = "0.1.0"
-    url: str = "http://localhost:8081"
+    version: str = os.environ.get("TRIFORCE_VERSION", "0.1.0")
+    url: str = os.environ.get("SERVICE_URL", "http://localhost:8081")
     protocolVersion: str = "0.2.6"
     provider: str = "Red Hat / Intel"
     capabilities: AgentCapabilities = AgentCapabilities()

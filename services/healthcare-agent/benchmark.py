@@ -8,6 +8,7 @@ import logging
 import os
 from typing import Optional
 
+import config
 import llm_client
 
 logger = logging.getLogger("triforce.benchmark")
@@ -68,7 +69,7 @@ async def run_single(model: str, task: str, text: str,
     total_tokens = prompt_tokens + output_tokens
 
     if is_gpu:
-        cost_per_req = total_tokens * 0.0003 / 1000
+        cost_per_req = total_tokens * config.GPU_COST_PER_TOKEN
     else:
         cost_per_req = 0.0
 
@@ -80,7 +81,7 @@ async def run_single(model: str, task: str, text: str,
         "output": (result.get("content") or "")[:500],
         "prompt_tokens": prompt_tokens,
         "output_tokens": output_tokens,
-        "cost_monthly": round(cost_per_req * 10000 * 30, 2),
+        "cost_monthly": round(cost_per_req * config.DEFAULT_DAILY_REQUESTS * config.DAYS_PER_MONTH, 2),
     }
 
 

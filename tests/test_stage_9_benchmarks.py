@@ -4,18 +4,13 @@ import os
 import pytest
 import httpx
 
-HEALTHCARE_URL = os.environ.get("HEALTHCARE_URL", "http://localhost:8081")
+from conftest import HEALTHCARE_URL, SAMPLE_TEXT, skip_without_api_key
+
 GPU_API_BASE = os.environ.get("GPU_API_BASE", "")
-SKIP_LIVE = not os.environ.get("LITELLM_API_KEY", "")
 SKIP_GPU = not GPU_API_BASE
 
-SAMPLE_TEXT = (
-    "DISCHARGE SUMMARY: 72-year-old male with Type 2 Diabetes "
-    "on Metformin 500mg and Lisinopril 10mg. Recent STEMI with PCI to RCA."
-)
 
-
-@pytest.mark.skipif(SKIP_LIVE, reason="LITELLM_API_KEY not set — skipping live benchmark tests")
+@skip_without_api_key
 class TestBenchmarkModels:
     """stage_9: Benchmark model listing."""
 
@@ -37,7 +32,7 @@ class TestBenchmarkModels:
             assert m["hardware"] == "cpu"
 
 
-@pytest.mark.skipif(SKIP_LIVE, reason="LITELLM_API_KEY not set")
+@skip_without_api_key
 class TestBenchmarkRun:
     """stage_9: Benchmark execution produces valid metrics."""
 
@@ -110,7 +105,7 @@ class TestBenchmarkRun:
         assert "error" in data
 
 
-@pytest.mark.skipif(SKIP_LIVE, reason="LITELLM_API_KEY not set")
+@skip_without_api_key
 class TestBenchmarkCostAndHardware:
     """stage_9: cost_monthly and hardware field validation."""
 
@@ -167,7 +162,7 @@ class TestBenchmarkCostAndHardware:
         )
 
 
-@pytest.mark.skipif(SKIP_LIVE, reason="LITELLM_API_KEY not set")
+@skip_without_api_key
 class TestGuideLLMBenchmark:
     """stage_9: guidellm integration — start, poll, and validate results."""
 
@@ -205,7 +200,7 @@ class TestGuideLLMBenchmark:
 class TestBenchmarkReproducibility:
     """stage_9: Benchmarks are reproducible within variance."""
 
-    @pytest.mark.skipif(SKIP_LIVE, reason="LITELLM_API_KEY not set")
+    @skip_without_api_key
     def test_two_runs_within_variance(self):
         results = []
         for _ in range(2):

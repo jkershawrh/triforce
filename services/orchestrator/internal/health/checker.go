@@ -1,5 +1,7 @@
 package health
 
+import "os"
+
 type Response struct {
 	Status  string `json:"status"`
 	Service string `json:"service"`
@@ -13,9 +15,13 @@ func New() *Checker {
 }
 
 func (c *Checker) Check() Response {
+	version := os.Getenv("TRIFORCE_VERSION")
+	if version == "" {
+		version = "0.1.0"
+	}
 	return Response{
 		Status:  "healthy",
 		Service: "orchestrator",
-		Version: "0.1.0",
+		Version: version,
 	}
 }

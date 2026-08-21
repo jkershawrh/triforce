@@ -6,13 +6,14 @@ import os
 import uuid
 
 import config
+from benchmark import GPU_MODELS as _GPU_MODELS_LIST
 
 logger = logging.getLogger("triforce.guidellm")
 
 _jobs: dict[str, dict] = {}
 _semaphore = asyncio.Semaphore(1)
 
-GPU_MODELS = {"granite-3-2-8b-instruct", "qwen3-14b", "gpt-oss-20b", "gpt-oss-120b"}
+GPU_MODELS = set(_GPU_MODELS_LIST)
 
 
 def _extract_metrics(benchmark) -> dict:

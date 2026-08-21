@@ -21,7 +21,6 @@ from typing_extensions import TypedDict
 LITELLM_API_BASE = os.environ.get("LITELLM_API_BASE", "https://maas-rhdp.apps.maas.redhatworkshops.io")
 LITELLM_API_KEY = os.environ.get("LITELLM_API_KEY", "")
 CLASSIFY_MODEL = os.environ.get("CLASSIFY_MODEL", "granite-2b-cpu")
-REASONING_MODEL = os.environ.get("REASONING_MODEL", "granite-2b-cpu")
 
 
 class FinServState(TypedDict):

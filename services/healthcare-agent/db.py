@@ -70,7 +70,8 @@ async def get_inference_stats(window_minutes: int = 5):
                 COALESCE(SUM(input_tokens), 0) as total_input_tokens,
                 COALESCE(SUM(output_tokens), 0) as total_output_tokens
                FROM inference_log
-               WHERE created_at > now() - interval '%s minutes'""" % window_minutes
+               WHERE created_at > now() - make_interval(mins => $1)""",
+            window_minutes
         )
         last = await _pool.fetchrow(
             "SELECT latency_ms, model, task_type FROM inference_log ORDER BY created_at DESC LIMIT 1"

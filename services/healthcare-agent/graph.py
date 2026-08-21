@@ -18,10 +18,8 @@ from langgraph.graph import END, StateGraph
 
 from typing_extensions import TypedDict
 
-LITELLM_API_BASE = os.environ.get("LITELLM_API_BASE", "https://maas-rhdp.apps.maas.redhatworkshops.io")
-LITELLM_API_KEY = os.environ.get("LITELLM_API_KEY", "")
-GPU_API_BASE = os.environ.get("GPU_API_BASE", "")
-GPU_API_KEY = os.environ.get("GPU_API_KEY", "")
+from config import LITELLM_API_BASE, LITELLM_API_KEY, GPU_API_BASE, GPU_API_KEY
+
 GPU_MODEL = os.environ.get("GPU_COMPLEX_MODEL", "granite-4.1-8b")
 CLASSIFY_MODEL = os.environ.get("CLASSIFY_MODEL", "qwen25-3b-cpu")
 NER_MODEL = os.environ.get("NER_MODEL", "granite-2b-cpu")

@@ -71,8 +71,8 @@ public class A2AResource {
         Map<String, Object> card = new LinkedHashMap<>();
         card.put("name", "Financial Services Agent");
         card.put("description", "Fraud detection and regulatory compliance agent for financial transactions. Runs on Intel Xeon 6 CPU.");
-        card.put("version", "0.1.0");
-        card.put("url", "http://localhost:8082");
+        card.put("version", System.getenv().getOrDefault("TRIFORCE_VERSION", "0.1.0"));
+        card.put("url", System.getenv().getOrDefault("SERVICE_URL", "http://localhost:8082"));
         card.put("protocolVersion", "0.2.6");
         card.put("provider", "Red Hat / Intel");
         card.put("capabilities", Map.of("streaming", false, "pushNotifications", false, "stateTransitionHistory", true));

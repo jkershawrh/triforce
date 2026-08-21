@@ -1,12 +1,9 @@
 import { motion } from 'motion/react'
 import { useDemoMetrics } from '../../stores/demoStore'
+import { MetricCard } from '../../components/MetricCard'
+import { fmt } from '../../utils/format'
 
 interface Props { onComplete?: () => void }
-
-function fmt(ms: number): string {
-  if (ms < 1000) return `${ms}ms`
-  return `${(ms / 1000).toFixed(1)}s`
-}
 
 export function Act06SecurePunchline({ onComplete }: Props) {
   const { pipeline } = useDemoMetrics()
@@ -42,18 +39,7 @@ export function Act06SecurePunchline({ onComplete }: Props) {
         gap: 10, margin: '24px 0',
       }}>
         {metrics.map((m, i) => (
-          <motion.div
-            key={m.label}
-            className="card"
-            style={{ borderLeft: `3px solid ${m.color}`, padding: '12px 16px', textAlign: 'center' }}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.12 }}
-          >
-            <div style={{ fontSize: 10, color: 'var(--text-dim)', textTransform: 'uppercase' }}>{m.label}</div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: m.color, marginTop: 4 }}>{m.value}</div>
-            <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>{m.detail}</div>
-          </motion.div>
+          <MetricCard key={m.label} {...m} index={i} delayStep={0.12} valueSize={20} centered />
         ))}
       </div>
 

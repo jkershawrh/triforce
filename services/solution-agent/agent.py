@@ -48,7 +48,7 @@ async def lifespan(app):
     yield
 
 
-app = FastAPI(title="Triforce Solution Architect Agent", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="Triforce Solution Architect Agent", version=os.environ.get("TRIFORCE_VERSION", "0.1.0"), lifespan=lifespan)
 
 
 @app.get("/health")

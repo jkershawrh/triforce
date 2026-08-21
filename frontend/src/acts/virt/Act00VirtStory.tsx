@@ -1,12 +1,9 @@
 import { useState } from 'react'
 import { motion } from 'motion/react'
 import { TriforceIntro } from '../../components/TriforceIntro'
+import { sourceStyle } from '../../utils/styles'
 
 interface Props { onComplete?: () => void }
-
-const sourceStyle: React.CSSProperties = {
-  fontSize: 9, color: 'var(--text-dim)', fontStyle: 'italic', marginTop: 4,
-}
 
 export function Act00VirtStory({ onComplete }: Props) {
   const [step, setStep] = useState(-1)

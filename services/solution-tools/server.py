@@ -15,7 +15,8 @@ from typing import Optional
 import uvicorn
 from fastapi import FastAPI
 
-app = FastAPI(title="Triforce Solution Tools", version="0.1.0")
+TRIFORCE_VERSION = os.environ.get("TRIFORCE_VERSION", "0.1.0")
+app = FastAPI(title="Triforce Solution Tools", version=TRIFORCE_VERSION)
 
 SERVICE_PORT = int(os.environ.get("SERVICE_PORT", "8095"))
 DATA_DIR = pathlib.Path(os.environ.get("DATA_DIR", str(pathlib.Path(__file__).parent / "data")))

@@ -1,4 +1,3 @@
-import { createContext, useContext, useMemo } from 'react'
 
 export type VerticalId = 'healthcare' | 'finserv' | 'telco' | 'energy'
 
@@ -158,19 +157,8 @@ export const VERTICALS: Record<VerticalId, VerticalConfig> = {
   },
 }
 
-const VerticalContext = createContext<VerticalConfig>(VERTICALS.healthcare)
-
 export function getVerticalFromUrl(): VerticalId {
   const params = new URLSearchParams(window.location.search)
   const v = params.get('vertical') as VerticalId
   return v && VERTICALS[v] ? v : 'healthcare'
-}
-
-export function VerticalProvider({ children }: { children: React.ReactNode }) {
-  const vertical = useMemo(() => VERTICALS[getVerticalFromUrl()], [])
-  return <VerticalContext.Provider value={vertical}>{children}</VerticalContext.Provider>
-}
-
-export function useVertical(): VerticalConfig {
-  return useContext(VerticalContext)
 }

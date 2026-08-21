@@ -15,7 +15,7 @@ public class HealthResource {
         return Map.of(
             "status", "healthy",
             "service", "finserv-agent",
-            "version", "0.1.0"
+            "version", System.getenv().getOrDefault("TRIFORCE_VERSION", "0.1.0")
         );
     }
 }
