@@ -43,9 +43,9 @@ make up               # podman-compose (requires exported env vars)
 # FinServ uses system mvn; do not add Maven wrapper files.
 
 # Tests by stage (11 stages total)
-make test-contracts              # Stage 0: schema validation (122 tests)
+make test-contracts              # Stage 0: schema validation (127 tests)
 make test-infra                  # Stage 1: containers + health
-make test-unit                   # Stage 2: per-service logic (54+13+3+22 tests)
+make test-unit                   # Stage 2: per-service logic (54+13+3+21 tests)
 make test-contracts-compliance   # Stage 3: response schema compliance
 make test-integration            # Stage 4: cross-service workflows
 make test-scale                  # Stage 5: synthetic load
@@ -105,7 +105,7 @@ infrastructure/
   podman-compose.yaml  # Local dev (8 services)
   helm/              # Helm chart with module flags
   llm-d/             # Disaggregated inference manifests
-frontend/            # React 19, TypeScript, Motion, ModuleContext
+frontend/            # React 19, TypeScript, Motion, Zustand
 content-001/         # Showroom lab — 001 Your First AI Inference
 content-101/         # Showroom lab — 101 Model Deployment
 content-201/         # Showroom lab — 201 Agent Creation

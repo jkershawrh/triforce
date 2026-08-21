@@ -103,8 +103,7 @@ Each module ends with Verify checklists and Learning Outcomes.
 **Oberon (Intel lab, 10 local models via OVMS + bitnet.cpp):**
 | Model | Params | Role |
 |-------|--------|------|
-| granite-350m | 350M | Speculative draft |
-| granite-4-0-h-tiny-cpu | ~1B | Ultra-fast classification |
+| granite-4-0-h-tiny-cpu | ~1B | Ultra-fast classification, speculative draft |
 | granite-2b-cpu | 2B | NER, fraud scoring, speculative target |
 | granite-2b-int8 | 2B | INT8 optimization comparison |
 | qwen25-3b-cpu | 3B | Classification, summarization |
@@ -169,8 +168,8 @@ curl -s -X POST http://localhost:8081/api/v1/fusion \
 **CDD → TDD → EDD** methodology. 11-stage validation matrix + frontend smoke tests.
 
 ```bash
-make test-contracts              # Stage 0: 122 contract tests
-make test-unit                   # Stage 2: 54 healthcare + 14 router + 13 finserv + 3 Go + 22 frontend
+make test-contracts              # Stage 0: 127 contract tests
+make test-unit                   # Stage 2: 54 healthcare + 14 router + 13 finserv + 3 Go + 21 frontend
 make test-modules                # Stage 8: 13 module manifest + Helm tests
 make test-benchmarks             # Stage 9: 24 benchmark + cost + GPU validation tests
 make test-platform               # ALL stages — platform green light
