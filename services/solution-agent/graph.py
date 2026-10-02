@@ -27,6 +27,7 @@ LITELLM_API_KEY = os.environ.get("LITELLM_API_KEY", "")
 ADVISOR_MODEL = os.environ.get("ADVISOR_MODEL", "qwen25-3b-cpu")
 MCP_SERVER_URL = os.environ.get("MCP_SERVER_URL", "http://solution-tools:8095")
 PROMPT_PATH = os.environ.get("PROMPT_PATH", "/etc/advisor/system_prompt")
+BRIEF_MAX_TOKENS = 1024
 
 
 class SolutionState(TypedDict):
@@ -216,7 +217,12 @@ async def generate_brief(state: SolutionState) -> dict:
         architecture=json.dumps(state.get("architecture", {}), indent=2),
     )
     prompt = f"{_get_advisor_prompt()}\n\n{task_context}"
-    llm = _get_llm(max_tokens=2048)
+    # Granite 3.2 8B is served with a 4K context window in Launchpad. The
+    # grounded tool payload can consume a little over 2K input tokens, so
+    # reserving 2K output tokens makes otherwise valid participant prompts
+    # fail at the context boundary. Keep enough headroom for the sourced
+    # inputs while still allowing a useful solution brief.
+    llm = _get_llm(max_tokens=BRIEF_MAX_TOKENS)
     start = time.monotonic()
     try:
         response = await llm.ainvoke([
