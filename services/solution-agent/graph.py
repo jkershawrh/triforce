@@ -27,7 +27,7 @@ LITELLM_API_KEY = os.environ.get("LITELLM_API_KEY", "")
 ADVISOR_MODEL = os.environ.get("ADVISOR_MODEL", "qwen25-3b-cpu")
 MCP_SERVER_URL = os.environ.get("MCP_SERVER_URL", "http://solution-tools:8095")
 PROMPT_PATH = os.environ.get("PROMPT_PATH", "/etc/advisor/system_prompt")
-BRIEF_MAX_TOKENS = 1024
+BRIEF_MAX_TOKENS = 512
 
 
 class SolutionState(TypedDict):

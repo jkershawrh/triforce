@@ -36,5 +36,5 @@ def test_brief_generation_reserves_context_for_grounded_inputs(monkeypatch):
 
     result = asyncio.run(graph.generate_brief(state))
 
-    assert requested_budgets == [1024]
+    assert requested_budgets == [512]
     assert result["brief"] == "Bounded solution brief"
