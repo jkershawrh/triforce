@@ -36,5 +36,19 @@ def test_brief_generation_reserves_context_for_grounded_inputs(monkeypatch):
 
     result = asyncio.run(graph.generate_brief(state))
 
-    assert requested_budgets == [512]
+    assert requested_budgets == [256]
     assert result["brief"] == "Bounded solution brief"
+
+
+def test_requirement_extraction_uses_public_window_budget(monkeypatch):
+    requested_budgets = []
+
+    def fake_get_llm(max_tokens):
+        requested_budgets.append(max_tokens)
+        return _FakeLLM()
+
+    monkeypatch.setattr(graph, "_get_llm", fake_get_llm)
+
+    asyncio.run(graph.understand_requirements({"query": "Private document assistant"}))
+
+    assert requested_budgets == [256]

@@ -27,7 +27,8 @@ LITELLM_API_KEY = os.environ.get("LITELLM_API_KEY", "")
 ADVISOR_MODEL = os.environ.get("ADVISOR_MODEL", "qwen25-3b-cpu")
 MCP_SERVER_URL = os.environ.get("MCP_SERVER_URL", "http://solution-tools:8095")
 PROMPT_PATH = os.environ.get("PROMPT_PATH", "/etc/advisor/system_prompt")
-BRIEF_MAX_TOKENS = 512
+REQUIREMENTS_MAX_TOKENS = 256
+BRIEF_MAX_TOKENS = 256
 
 
 class SolutionState(TypedDict):
@@ -119,7 +120,7 @@ def _extract_json(text: str) -> dict:
 
 async def understand_requirements(state: SolutionState) -> dict:
     """Node 1: LLM extracts structured requirements from the customer query."""
-    llm = _get_llm(max_tokens=512)
+    llm = _get_llm(max_tokens=REQUIREMENTS_MAX_TOKENS)
     start = time.monotonic()
     try:
         response = await llm.ainvoke([
