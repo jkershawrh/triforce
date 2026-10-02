@@ -18,7 +18,7 @@ spec:
         runAsNonRoot: true
       containers:
         - name: solution-agent
-          image: ghcr.io/jkershawrh/triforce-solution-agent@sha256:bdf283c222c1894ad43655f43ed4c510a6bb4af77105008cea96d9785207d693
+          image: ghcr.io/jkershawrh/triforce-solution-agent@sha256:4bcaedd2b706c47c736ad53f9fe457da9e9c3e3e6de5d37f54fc837ac0557a3b
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
